@@ -1,0 +1,5 @@
+Kịch bản 1: Chuyến hàng Nội địa Đơn giản: Công ty TNHH Minh An (khách hàng) thuê vận chuyển một lô hàng nông sản từ Cần Thơ đi TP.HCM. Chuyến đi này do một tài xế đảm nhận, sử dụng một xe tải. Hóa đơn được xuất ngay sau khi giao hàng.
+
+Kịch bản 2: Chuyến hàng Container Đường dài Phức tạp: Tập đoàn FPT (khách hàng) thuê vận chuyển một container hàng điện tử từ kho ở Cần Thơ ra Hà Nội. Chuyến đi này cần hai tài xế thay phiên nhau lái.
+
+Kịch bản 3: Hàng tồn kho và Tài sản nhàn rỗi: Một số tài xế, phương tiện và container đang ở trạng thái sẵn sàng, chưa được phân công cho chuyến đi nào, thể hiện tình trạng hoạt động thực tế của công ty.

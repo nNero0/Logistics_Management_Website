@@ -1,0 +1,14 @@
+import express from 'express';
+
+import KhoBaiControllers from '../controllers/KhoBaiControllers.js';
+import { protect } from '../middleware/authMiddleware.js'; 
+
+
+const router = express.Router();
+
+router.post('/createkhobai' ,protect, KhoBaiControllers.CreateKhoBai);
+router.post('/' ,protect, KhoBaiControllers.fetchKhoBai);
+
+
+export default router;
+
