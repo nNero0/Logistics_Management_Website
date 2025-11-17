@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { useNavigate,Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState(null);
 
   const navigate = useNavigate();
@@ -27,8 +27,11 @@ function LoginPage() {
       if (!response.ok) {
         throw new Error(data.message || "Login failed. Please check credentials.");
       }
-
-      localStorage.setItem("userToken", data.token);
+      if (rememberMe) {
+        localStorage.setItem("userToken", data.token);
+      } else {
+        sessionStorage.setItem("userToken", data.token);
+      }
 
       navigate("/");
     } catch (err) {
@@ -62,11 +65,20 @@ function LoginPage() {
             placeholder="Your password"
           />
         </div>
+        <div>
+          <input
+            type="checkbox"
+            id="rememberMe"
+            checked={rememberMe}
+            onChange={(e) => setRememberMe(e.target.checked)}
+          />
+          <label htmlFor="rememberMe">Ghi nhớ tôi</label>
+        </div>
         <button type="submit" className="login-button">
           Login
         </button>
         <p>
-          <Link to="/auth/register">Register</Link>  
+          <Link to="/auth/register">Register</Link>
         </p>
 
         {error && <p className="error-message">{error}</p>}

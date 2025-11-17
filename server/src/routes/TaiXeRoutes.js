@@ -8,6 +8,7 @@ const router = express.Router();
 
 router.post('/createtaixe' ,protect, TaiXeControllers.CreateTaiXe);
 
+router.get('/' ,protect, TaiXeControllers.getAllTaiXe);
 
 export default router;
 

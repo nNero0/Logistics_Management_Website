@@ -17,7 +17,7 @@
 //     UNIQUE (BienSo)
 // );
 
-import PhuongTien from "../models/phuongtien.js";
+import { PhuongTien } from "../models/index.js";
 const PhuongTienControllers = {
   async CreatePhuongTien(req, res) {
     try {
@@ -32,6 +32,7 @@ const PhuongTienControllers = {
         CDaiThungChua,
         CRongThungChua,
         CCaoThungChua,
+        IdKhoBai,
       } = req.body;
       const newPhuongTien = await PhuongTien.create({
         BienSo,
@@ -43,6 +44,7 @@ const PhuongTienControllers = {
         CDaiThungChua,
         CRongThungChua,
         CCaoThungChua,
+        IdKhoBai,
       });
       res.status(201).json({ newPhuongTien });
     } catch (error) {
@@ -54,15 +56,27 @@ const PhuongTienControllers = {
       console.log(error);
     }
   },
+
   async getAllPhuongTien(req, res) {
     try {
-   
-      const PTs= await PhuongTien.findAll();
+      const { trangThai, viTriId } = req.query;
 
-      res.status(200).json(PTs);
+      const whereClause = {};
+      if (trangThai) {
+        whereClause.TrangThai = trangThai; // Tên cột trong Model PhuongTien
+      }
+      if (viTriId) {
+        whereClause.IdKhoBai = viTriId; // Tên cột trong Model PhuongTien
+      }
+
+      const phuongTienList = await PhuongTien.findAll({
+        where: whereClause,
+      });
+
+      res.status(200).json(phuongTienList);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách phương tiện:", error);
-      res.status(500).json({ message: "Đã có lỗi xảy ra ở máy chủ" });
+      res.status(500).json({ message: "Lỗi server", error: error.message });
     }
   },
 };

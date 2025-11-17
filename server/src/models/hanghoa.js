@@ -2,16 +2,18 @@ import { DataTypes } from "@sequelize/core";
 import sequelize from "../db/db.js";
 
 // CREATE TABLE HangHoa (
-  //     IdHangHoa       INT NOT NULL AUTO_INCREMENT,
-  //     IdDonVan        INT NOT NULL,
-  //     NoiDung         NVARCHAR(255) NOT NULL,
-  //     CanNang         DECIMAL(15,2) NOT NULL,
-  //     ChieuDai        DECIMAL(15,2) NOT NULL,
-  //     XuatXu          VARCHAR(3) NOT NULL,
-  //     GhiChu          NVARCHAR(255),
-  //     ChieuRong       DECIMAL(15,2) NOT NULL,
-  //     ChieuCao        DECIMAL(15,2) NOT NULL,
-  //     PRIMARY KEY (IdHangHoa)
+//     IdHangHoa       INT NOT NULL AUTO_INCREMENT,
+//     IdDonVan        INT NOT NULL,
+//     NoiDung         NVARCHAR(200) NOT NULL,
+//     CanNang         DECIMAL(8,2) NOT NULL,
+//     XuatXu          VARCHAR(3) NOT NULL,
+//     GhiChu          NVARCHAR(255),
+//     ChieuDai        DECIMAL(8,2) NOT NULL,
+//     ChieuRong        DECIMAL(8,2) NOT NULL,
+//     ChieuCao        DECIMAL(8,2) NOT NULL,
+//     NgayTao         DATE NOT NULL,
+    
+//     PRIMARY KEY (IdHangHoa)
 // );
 
 const HangHoa = sequelize.define(
@@ -24,9 +26,8 @@ const HangHoa = sequelize.define(
       primaryKey: true,
     },
     IdDonVan: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.INTEGER,
       allowNull: false,
-      unique: true,
     },
     NoiDung: {
       type: DataTypes.STRING(255),
@@ -38,13 +39,13 @@ const HangHoa = sequelize.define(
     },
 
     XuatXu: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.STRING(3),
       allowNull: false,
     },
 
     GhiChu: {
       type: DataTypes.STRING(255),
-      allowNull: false,
+      allowNull: true,
     },
     ChieuDai: {
       type: DataTypes.DECIMAL(8, 2),
@@ -59,7 +60,7 @@ const HangHoa = sequelize.define(
       allowNull: false,
     },
   },
-  { tableName: "HangHoa", createdAt: "NgayTao" }
+  { tableName: "HangHoa", timestamps:false }
 );
 
 export default HangHoa;

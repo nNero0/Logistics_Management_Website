@@ -1,13 +1,12 @@
 import React, { useState } from "react";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
 function KhachHangForm() {
   // State for KhachHang (Customer) fields
-  const [TenKhachHang, setTenKhachHang] = useState("");
-  const [DiaChi, setDiaChi] = useState("");
+  const [Hoten, setHoten] = useState("");
+
   const [Sdt, setSdt] = useState("");
   const [Email, setEmail] = useState("");
-  const [MaSoThue, setMaSoThue] = useState(""); // Tax ID (Optional but recommended)
 
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -17,16 +16,14 @@ function KhachHangForm() {
     setError(null);
 
     const KhachHangData = {
-      TenKhachHang: TenKhachHang,
-      DiaChi: DiaChi,
+      Hoten: Hoten,
       Sdt: Sdt,
       Email: Email,
-      MaSoThue: MaSoThue || null,
     };
 
     try {
-      const apiURL = process.env.VITE_APP_API;
-      const token = localStorage.getItem('userToken');
+      const apiURL = import.meta.env.VITE_APP_API;
+      const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
 
       if (!token) {
         throw new Error("User is not authenticated.");
@@ -37,7 +34,7 @@ function KhachHangForm() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(KhachHangData),
       });
@@ -51,9 +48,8 @@ function KhachHangForm() {
       console.log("Khách hàng được tạo: ", NewKhachHang);
 
       // Reset form or navigate away
-      // For this pattern, let's navigate to a customer list page
-      navigate('/customers'); // Or '/dashboard'
-
+      // For this pattern, let's navigate to a custom er list page
+      navigate("/"); // Or '/dashboard'
     } catch (error) {
       setError(error.message);
       console.log("Error :", error.message);
@@ -65,12 +61,15 @@ function KhachHangForm() {
       <h3> Thêm Khách Hàng Mới </h3>
       <div>
         <label htmlFor="tenKhachHang">Tên Khách Hàng / Công Ty</label>
-        <input id="tenKhachHang" type="text" value={TenKhachHang} onChange={(e) => setTenKhachHang(e.target.value)} required />
+        <input
+          id="tenKhachHang"
+          type="text"
+          value={Hoten}
+          onChange={(e) => setHoten(e.target.value)}
+          required
+        />
       </div>
-      <div>
-        <label htmlFor="diaChi">Địa Chỉ</label>
-        <input id="diaChi" type="text" value={DiaChi} onChange={(e) => setDiaChi(e.target.value)} required />
-      </div>
+
       <div>
         <label htmlFor="sdt">Số điện thoại</label>
         <input id="sdt" type="text" value={Sdt} onChange={(e) => setSdt(e.target.value)} required />
@@ -79,13 +78,9 @@ function KhachHangForm() {
         <label htmlFor="email">Email</label>
         <input id="email" type="email" value={Email} onChange={(e) => setEmail(e.target.value)} required />
       </div>
-      <div>
-        <label htmlFor="maSoThue">Mã Số Thuế (Nếu có)</label>
-        <input id="maSoThue" type="text" value={MaSoThue} onChange={(e) => setMaSoThue(e.target.value)} />
-      </div>
-      
+
       <button type="submit"> Lưu Khách Hàng </button>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {error && <p style={{ color: "red" }}>{error}</p>}
     </form>
   );
 }

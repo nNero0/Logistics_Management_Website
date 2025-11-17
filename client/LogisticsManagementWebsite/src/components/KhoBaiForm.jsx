@@ -4,7 +4,7 @@ function KhoBaiForm() {
   const [DiaChi, setDiaChi] = useState("");
   const [SucChuaTong, setSucChuaTong] = useState(0);
   const [TrangThai, setTrangThai] = useState("có sẵn");
-  const [Loai, setLoai] = useState("Lưu trữ");
+  const [LoaiKho, setLoaiKho] = useState("Lưu trữ");
   const [error, setError] = useState(null);
 
   const HandleSubmit = async (event) => {
@@ -13,14 +13,14 @@ function KhoBaiForm() {
 
     const KhoBaiData = {
       DiaChi: DiaChi,
-      SucChuaTong: SucChuaTong,
+      SucChuaTong: Number(SucChuaTong),
       TrangThai: TrangThai,
-      Loai: Loai,
+      LoaiKho: LoaiKho,
     };
 
     try {
-      const apiURL = process.env.VITE_APP_API;
-      const token = localStorage.getItem("userToken");
+      const apiURL = import.meta.env.VITE_APP_API;
+      const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
 
       if (!token) {
         throw new Error("User is not authenticated.");
@@ -43,12 +43,10 @@ function KhoBaiForm() {
       const NewKhoBai = await response.json();
       console.log("Kho bãi được tạo: ", NewKhoBai);
 
-    
-
       setDiaChi("");
       setSucChuaTong("");
       setTrangThai("có sẵn");
-      setLoai("Lưu trữ");
+      setLoaiKho("Lưu trữ");
     } catch (error) {
       setError(error.message);
       console.log("Error :", error.message);
@@ -81,8 +79,8 @@ function KhoBaiForm() {
         </select>
       </div>
       <div>
-        <label htmlFor="Loai">Loại Kho Bãi</label>
-        <select id="Loai" value={Loai} onChange={(e) => setLoai(e.target.value)}>
+        <label htmlFor="LoaiKho">Loại Kho Bãi</label>
+        <select id="LoaiKho" value={LoaiKho} onChange={(e) => setLoaiKho(e.target.value)}>
           <option value="Lưu trữ">Lưu trữ</option>
           <option value="Điểm Trung Chuyển">Điểm Trung Chuyển</option>
           <option value="Điểm Giao Hàng">Điểm Giao Hàng</option>

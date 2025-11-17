@@ -1,5 +1,5 @@
 import express from 'express';
-import shipmentsControllers from '../controllers/shipmentsControllers.js';
+import shipmentsControllers from '../controllers/DonVanControllers.js';
 
 
 const router = express.Router();

@@ -73,6 +73,8 @@ CREATE TABLE Csc (
     LastInspection      DATE NOT NULL,
     Expiry              DATE NOT NULL,
     PRIMARY KEY (IdContainer)
+    UNIQUE(PlateNumber),
+    UNIQUE(ApprovalNumber)
 );
 
 CREATE TABLE KhoBai (
@@ -87,12 +89,14 @@ CREATE TABLE KhoBai (
 
 CREATE TABLE LoTrinh (
     IdLoTrinh       INT NOT NULL AUTO_INCREMENT,
-    NoiBatDau       NVARCHAR(255) NOT NULL,
-    NoiKetThuc      NVARCHAR(255) NOT NULL,
+    TenLoTrinh      NVARCHAR(255) NOT NULL,
+    IdKhoBaiBatDau  INT NOT NULL,
+    IdKhoBaiKetThuc INT NOT NULL,
     TrangThai       NVARCHAR(255) NOT NULL,
     ETC           DECIMAL(8,2) NOT NULL,
     KhoangCach         DECIMAL(8,2) NOT NULL,
     PRIMARY KEY (IdLoTrinh)
+    
 );
 
 -- =============================================================
@@ -132,10 +136,9 @@ CREATE TABLE Quyen (
 
 CREATE TABLE DonVan (
     IdDonVan        INT NOT NULL AUTO_INCREMENT,
-    IdLoTrinh       INT NOT NULL,
+    IdKhoBaiBatDau       INT NOT NULL,
+    IdKhoBaiKetThuc       INT NOT NULL,
     IdKhachHang     INT NOT NULL,
-    DiaDiemGiao     NVARCHAR(255) NOT NULL,
-
     ETA             DATETIME NOT NULL,
     NgayLapDon      DATETIME NOT NULL,
     PRIMARY KEY (IdDonVan)
@@ -179,17 +182,24 @@ CREATE TABLE PhanCongDonVan (
     PRIMARY KEY (IdPhanCong)
 );
 
+CREATE TABLE ChiTietLoTrinh (
+    IdChiTietLoTrinh INT PRIMARY KEY AUTO_INCREMENT,
+    IdLoTrinh INT NOT NULL,            -- Liên kết với bảng LoTrinh
+    IdKhoBai INT NOT NULL,     -- Liên kết với bảng KhoBai
+    ThuTu INT NOT NULL,                -- Rất quan trọng: 1, 2, 3...
+
+    FOREIGN KEY (IdLoTrinh) REFERENCES LoTrinh(IdLoTrinh),
+    FOREIGN KEY (IdKhoBai) REFERENCES KhoBai(IdKhoBai),
+    UNIQUE KEY UQ_LoTrinh_ThuTu (IdLoTrinh, ThuTu)
+);
+
+
 -- =============================================================
 -- Bảng Nối (Junction Tables)
 -- =============================================================
 
-CREATE TABLE DiemDungTrungGian (
-    IdKhoBai        INT NOT NULL,
-    IdLoTrinh       INT NOT NULL,
-    PRIMARY KEY (IdKhoBai, IdLoTrinh)
-);
 
-CREATE TABLE DonVanContainer (
+CREATE TABLE DonVanContainer (  
     IdContainer     INT NOT NULL,
     IdDonVan        INT NOT NULL,
     PRIMARY KEY (IdContainer, IdDonVan)
@@ -199,6 +209,20 @@ CREATE TABLE DonVanContainer (
 -- Định Nghĩa Khóa Ngoại (Foreign Key Constraints)
 -- =============================================================
 
+
+ALTER TABLE DonVan
+ADD CONSTRAINT FK_DonVan_KhoBatDau
+FOREIGN KEY (IdKhoBaiBatDau) REFERENCES KhoBai(IdKhoBai);
+ALTER TABLE DonVan
+ADD CONSTRAINT FK_DonVan_KhoKetThuc
+FOREIGN KEY (IdKhoBaiKetThuc) REFERENCES KhoBai(IdKhoBai);
+ALTER TABLE LoTrinh
+ADD CONSTRAINT FK_LoTrinh_KhoBatDau
+FOREIGN KEY (IdKhoBaiBatDau) REFERENCES KhoBai(IdKhoBai);
+
+ALTER TABLE LoTrinh
+ADD CONSTRAINT FK_LoTrinh_KhoKetThuc
+FOREIGN KEY (IdKhoBaiKetThuc) REFERENCES KhoBai(IdKhoBai);
 ALTER TABLE Csc ADD CONSTRAINT FK_Csc_Container FOREIGN KEY (IdContainer) REFERENCES Container (IdContainer);
 ALTER TABLE DiemDungTrungGian ADD CONSTRAINT FK_DDTG_KhoBai FOREIGN KEY (IdKhoBai) REFERENCES KhoBai (IdKhoBai);
 ALTER TABLE DiemDungTrungGian ADD CONSTRAINT FK_DDTG_LoTrinh FOREIGN KEY (IdLoTrinh) REFERENCES LoTrinh (IdLoTrinh);

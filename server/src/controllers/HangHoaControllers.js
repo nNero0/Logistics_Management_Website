@@ -1,4 +1,4 @@
-import HangHoa from "../models/hanghoa.js";
+import {HangHoa} from "../models/index.js";
 
 //     IdHangHoa       INT NOT NULL AUTO_INCREMENT,
 //     IdDonVan        INT NOT NULL,
@@ -32,6 +32,7 @@ const HangHoaControllers = {
       console.log(error);
     }
   },
+
 };
 
 export default HangHoaControllers;

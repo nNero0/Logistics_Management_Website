@@ -6,7 +6,6 @@ import "./App.css";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 
 import PhuongTienForm from "./components/PhuongTienForm";
-import PhuongTienList from "./components/PhuongTienList";
 import LoginPage from "./components/LoginPage";
 import ProtectedRoute from "./components/ProtectedRoutes";
 import RegisterPage from "./components/RegisterPage";
@@ -15,6 +14,12 @@ import KhachHangForm from "./components/KhangHangForm";
 import TaiXeForm from "./components/TaiXeForm";
 import KhoBaiForm from "./components/KhoBaiForm";
 import LoTrinhForm from "./components/LoTrinhForm";
+import HangHoaForm from "./components/HangHoaForm";
+import GanDonPage from "./components/GanDonPage";
+import ChuyenDangChay from "./components/ChuyenDangChay";
+import DieuPhoiLayout from "./components/DieuPhoiLayout";
+
+
 const DashBoard = () => (
   <div>
     <h2>WELCOME </h2>
@@ -25,28 +30,34 @@ const DashBoard = () => (
         <Link to="/" style={{ marginRight: "15px" }}>
           Dashboard
         </Link>
-        <Link to="/phuongtien" style={{ marginRight: "15px" }}>
-          Vehicle List
+        <Link to="/taixe/createtaixe" style={{ marginRight: "15px" }}>
+          Tài xế
         </Link>
         <Link to="/phuongtien/new" style={{ marginRight: "15px" }}>
-          Add Vehicle
+          Phương tiện
         </Link>
-           <Link to="/khobai/createkhobai" style={{ marginRight: "15px" }}>
-          Them Kho Bãi
+        <Link to="/khobai/createkhobai" style={{ marginRight: "15px" }}>
+          Kho Bãi
         </Link>
-           <Link to="/khachhang/createkhachhang" style={{ marginRight: "15px" }}>
-          Thêm khách hàng
+        <Link to="/khachhang/createkhachhang" style={{ marginRight: "15px" }}>
+          khách hàng
         </Link>
-           <Link to="/donvan/createdonvan" style={{ marginRight: "15px" }}>
-          Tạo đơn vận
-        </Link>
-           <Link to="/taixe/createtaixe" style={{ marginRight: "15px" }}>
-          Thêm tài xế
-        </Link>
-              <Link to="/lotrinh/createlotrinh" style={{ marginRight: "15px" }}>
-          Thêm Lộ trình
+        <Link to="/donvan/createdonvan" style={{ marginRight: "15px" }}>
+          đơn vận
         </Link>
 
+        <Link to="/lotrinh/createlotrinh" style={{ marginRight: "15px" }}>
+          Lộ trình
+        </Link>
+        <Link to="/donvan/createdonvan" style={{ marginRight: "15px" }}>
+          đơn vận
+        </Link>
+        <Link to="/hanghoa/createhanghoa" style={{ marginRight: "15px" }}>
+          hàng hóa
+        </Link>
+        <Link to="/dieuphoi" style={{ marginRight: "15px" }}>
+          Điều phối
+        </Link>
       </nav>
     </header>
     <hr />
@@ -65,13 +76,21 @@ function App() {
         <Route path="/auth/register" element={<RegisterPage />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<DashBoard />} />
-          <Route path="/phuongtien" element={<PhuongTienList />} />
           <Route path="/phuongtien/new" element={<PhuongTienForm />} />
           <Route path="/taixe/createtaixe" element={<TaiXeForm />} />
           <Route path="/khachhang/createkhachhang" element={<KhachHangForm />} />
           <Route path="/khobai/createkhobai" element={<KhoBaiForm />} />
-           <Route path="/lotrinh/createlotrinh" element={<LoTrinhForm />} />
-        </Route>
+          <Route path="/lotrinh/createlotrinh" element={<LoTrinhForm />} />
+          <Route path="/donvan/createdonvan" element={<DonVanForm />} />
+          <Route path="/hanghoa/createhanghoa" element={<HangHoaForm />} />
+          <Route path="/dieuphoi" element={<DieuPhoiLayout />} >
+
+            <Route index element={<GanDonPage />} /> 
+
+
+            <Route path="phancong" element={<ChuyenDangChay />} />
+          </Route>
+        </Route>  
       </Routes>
     </BrowserRouter>
   );

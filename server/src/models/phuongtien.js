@@ -71,6 +71,10 @@ const PhuongTien = sequelize.define(
       type: DataTypes.DECIMAL(8, 2),
       allowNull: false,
     },
+     IdKhoBai:{
+      type: DataTypes.INTEGER,
+      allowNull: false
+    }
   },
   { tableName: "PhuongTien", timestamps: false }
 );

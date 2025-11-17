@@ -8,6 +8,6 @@ const router = express.Router();
 
 
 router.post('/createkhachhang' ,protect, KhachHangControllers.CreateKhachHang);
-
+router.get('/' ,protect, KhachHangControllers.getAllKhachHang);
 export default router;
 

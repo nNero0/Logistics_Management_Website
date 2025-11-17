@@ -1,12 +1,12 @@
-import { DataTypes} from '@sequelize/core';
-import sequelize from "../config/database.js";
+import { DataTypes } from "@sequelize/core";
+import sequelize from "../db/db.js";
 
 // IdDonVan        INT NOT NULL AUTO_INCREMENT,
 // IdLoTrinh       INT NOT NULL,
 // IdKhachHang     INT NOT NULL,
 // DiaDiemGiao     NVARCHAR(255) NOT NULL,
 
-// ETA             DATETIME NOT NULL,
+// ETA             DATETIME,
 // NgayLapDon      DATETIME NOT NULL,
 // PRIMARY KEY (IdDonVan)
 
@@ -19,7 +19,11 @@ const DonVan = sequelize.define(
       autoIncrement: true,
       primaryKey: true,
     },
-    IDLoTrinh: {
+    IdKhoBaiBatDau: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    IdKhoBaiKetThuc: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
@@ -29,6 +33,10 @@ const DonVan = sequelize.define(
     },
     ETA: {
       type: DataTypes.DATE,
+      allowNull: false,
+    },
+    TrangThai: {
+      type: DataTypes.STRING(255),
       allowNull: false,
     },
   },

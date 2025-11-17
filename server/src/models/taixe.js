@@ -29,7 +29,7 @@ const TaiXe = sequelize.define(
       autoIncrement: true,
       primaryKey: true,
     },
-    HoTen: {
+    Hoten: {
       type: DataTypes.STRING(255),
       allowNull: false,
     },
@@ -53,7 +53,7 @@ const TaiXe = sequelize.define(
     },
     LyDoChiTiet: {
       type: DataTypes.STRING(255),
-      allowNull: false,
+      allowNull: true,
     },
     CCCD: {
       type: DataTypes.STRING(12),
@@ -69,6 +69,10 @@ const TaiXe = sequelize.define(
       type: DataTypes.STRING(255),
       allowNull: false,
     },
+    IdKhoBai:{
+      type: DataTypes.INTEGER,
+      allowNull: false
+    }
   },
   { tableName: "TaiXe", timestamps: false }
 );

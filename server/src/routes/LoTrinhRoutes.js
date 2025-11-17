@@ -6,8 +6,8 @@ import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.post('/lotrinh/createlotrinh' ,protect, LoTrinhControllers.CreateLoTrinh);
-
+router.post('/createlotrinh' ,protect, LoTrinhControllers.CreateLoTrinh);
+router.get('/' ,protect, LoTrinhControllers.getAllLoTrinh);
 
 export default router;
 

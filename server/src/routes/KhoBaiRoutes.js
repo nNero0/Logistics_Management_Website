@@ -7,7 +7,7 @@ import { protect } from '../middleware/authMiddleware.js';
 const router = express.Router();
 
 router.post('/createkhobai' ,protect, KhoBaiControllers.CreateKhoBai);
-router.post('/' ,protect, KhoBaiControllers.fetchKhoBai);
+router.get('/' ,protect, KhoBaiControllers.fetchKhoBai);
 
 
 export default router;

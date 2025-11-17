@@ -6,7 +6,7 @@ import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.get('/getphuongtien',protect, PhuongTienControllers.getAllPhuongTien);
+router.get('/',protect, PhuongTienControllers.getAllPhuongTien);
 
 router.post('/createphuongtien' ,protect, PhuongTienControllers.CreatePhuongTien);
 

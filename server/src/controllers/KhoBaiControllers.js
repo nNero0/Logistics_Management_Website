@@ -1,12 +1,11 @@
-import KhoBai from "../models/khobai.js";
+import{ KhoBai} from "../models/index.js";
 
 const KhoBaiControllers = {
   async CreateKhoBai(req, res) {
     try {
-      console.log("CREATE TAI XE RECIEVED:", req.body);
-      const { IdKhoBai, DiaChi, SucChuaTong, TrangThai, LoaiKho } = req.body;
+      console.log("CREATE KHO BAI RECIEVED:", req.body);
+      const { DiaChi, SucChuaTong, TrangThai, LoaiKho } = req.body;
       const newKhoBai = await KhoBai.create({
-        IdKhoBai,
         DiaChi,
         SucChuaTong,
         TrangThai,
@@ -24,12 +23,11 @@ const KhoBaiControllers = {
   },
   async fetchKhoBai(req, res) {
     try {
-      const KBs = await KhoBai.findAll();
-
-      res.status(200).json(PTs);
+      const khoBais = await KhoBai.findAll();
+      res.status(200).json(khoBais);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách kho bãi:", error);
-      res.status(500).json({ message: "Đã có lỗi xảy ra ở máy chủ" });
+      res.status(500).json({ message: "Đã có lỗi xảy ra ở máy chủ", error: error.message });
     }
   },
 };
