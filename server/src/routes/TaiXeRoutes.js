@@ -9,6 +9,7 @@ const router = express.Router();
 router.post('/createtaixe' ,protect, TaiXeControllers.CreateTaiXe);
 
 router.get('/' ,protect, TaiXeControllers.getAllTaiXe);
+router.delete('/delete/:id' ,protect, TaiXeControllers.deleteTaiXe);
 
 export default router;
 

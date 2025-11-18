@@ -1,204 +1,303 @@
 import React, { useState, useEffect } from "react";
-// import { useNavigate } from "react-router-dom"; // Bạn có thể cần
+
+// Helper để lấy ngày hôm nay cho input date
+const getTodayString = () => {
+  return new Date().toISOString().split('T')[0];
+};
 
 function TaiXeForm() {
-  // State for TaiXe (Driver) fields
-  const [HoTen, setHoTen] = useState("");
+  const [Hoten, setHoten] = useState("");
   const [Sdt, setSdt] = useState("");
   const [Email, setEmail] = useState("");
   const [BangLai, setBangLai] = useState("");
-  // --- THAY ĐỔI: Đặt giá trị mặc định hợp lý ---
-  const [TrangThaiNghiepVu, setTrangThaiNghiepVu] = useState("SanSang"); 
+  const [TrangThaiNghiepVu, setTrangThaiNghiepVu] = useState("SanSang");
+  
+  // --- STATE BỊ THIẾU ---
   const [LyDoChiTiet, setLyDoChiTiet] = useState("");
   const [CCCD, setCCCD] = useState("");
-  const [NgayCapCCCD, setNgayCapCCCD] = useState("");
+  const [NgayCapCCCD, setNgayCapCCCD] = useState(getTodayString()); // Đặt ngày mặc định
   const [NoiCapCCCD, setNoiCapCCCD] = useState("");
+  // -----------------------
 
-  // --- THÊM MỚI: State cho Vị trí (Kho Bãi) ---
-  const [IdViTriHienTai, setIdViTriHienTai] = useState(""); // Lưu ID Kho Bãi
-  const [KhoBaiList, setKhoBaiList] = useState([]); // Lưu danh sách Kho Bãi
+  const [IdViTriHienTai, setIdViTriHienTai] = useState("");
 
-  // --- THÊM MỚI: State cho UI ---
-  const [loadingKhoBai, setLoadingKhoBai] = useState(true);
+  const [KhoBaiList, setKhoBaiList] = useState([]);
+  const [TaiXeList, setTaiXeList] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  // const navigate = useNavigate();
 
-  // --- THÊM MỚI: Tải danh sách Kho Bãi khi form được mount ---
+  const apiURL = import.meta.env.VITE_APP_API;
+  const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
+
+  // --- Load kho bãi ---
   useEffect(() => {
     const fetchKhoBai = async () => {
       try {
-        const apiURL = import.meta.env.VITE_APP_API;
-        const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
-
-        const response = await fetch(`${apiURL}/api/khobai`, {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error("Không thể tải danh sách kho bãi");
-        }
-        
-        const data = await response.json();
+        const res = await fetch(`${apiURL}/api/khobai`, { headers: { Authorization: `Bearer ${token}` } });
+        if (!res.ok) throw new Error("Lỗi tải kho bãi");
+        const data = await res.json();
         setKhoBaiList(data);
-        setLoadingKhoBai(false);
       } catch (err) {
+        console.error(err);
         setError(err.message);
-        setLoadingKhoBai(false);
       }
     };
-
     fetchKhoBai();
-  }, []); // Chạy 1 lần
+  }, [apiURL, token]);
 
-  const HandleSubmit = async (event) => {
-    event.preventDefault();
-    setError(null); // Xóa lỗi cũ
+  // --- Load danh sách tài xế ---
+  const fetchTaiXe = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${apiURL}/api/taixe`, { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) throw new Error("Lỗi tải danh sách tài xế");
+      const data = await res.json();
+      setTaiXeList(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    // --- THÊM MỚI: Kiểm tra Vị trí ---
+  useEffect(() => {
+    fetchTaiXe();
+  }, [apiURL, token]);
+
+  // --- Submit form (ĐÃ CẬP NHẬT) ---
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+
     if (!IdViTriHienTai) {
       setError("Vui lòng chọn vị trí hiện tại cho tài xế.");
       return;
     }
 
     const TaiXeData = {
-      Hoten: HoTen,
-      Sdt: Sdt,
-      Email: Email,
-      BangLai: BangLai,
-      TrangThaiNghiepVu: TrangThaiNghiepVu,
-      LyDoChiTiet: LyDoChiTiet || null,
-      CCCD: CCCD,
-      NgayCapCCCD: NgayCapCCCD,
-      NoiCapCCCD: NoiCapCCCD,
-      IdKhoBai: Number(IdViTriHienTai), // <-- THÊM MỚI: Gửi ID Vị trí
+      Hoten,
+      Sdt,
+      Email,
+      BangLai,
+      TrangThaiNghiepVu,
+ 
+      LyDoChiTiet: TrangThaiNghiepVu === "SanSang" ? null : LyDoChiTiet,
+      CCCD,
+      NgayCapCCCD,
+      NoiCapCCCD,
+      IdKhoBai: Number(IdViTriHienTai),
     };
 
     try {
-      const apiURL = import.meta.env.VITE_APP_API;
-      const token = localStorage.getItem('userToken') || sessionStorage.getItem("userToken");
-
-      if (!token) {
-        setError("User is not authenticated."); // Cập nhật lỗi
-        return; 
-      }
-
-      const response = await fetch(`${apiURL}/api/taixe/createtaixe`, {
+      const res = await fetch(`${apiURL}/api/taixe/createtaixe`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}` 
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(TaiXeData),
       });
-
-      if (!response.ok) {
-        console.error("Error:", response.status, response.statusText);
-        const data = await response.json();
+      if (!res.ok) {
+        const data = await res.json();
         throw new Error(data.message || "Tạo tài xế thất bại");
       }
-
-      const NewTaiXe = await response.json();
-      console.log("TaiXe duoc tao ", NewTaiXe);
       alert("Tạo tài xế thành công!");
-
-      // Reset all form fields
-      setHoTen("");
-      setSdt("");
-      setEmail("");
-      setBangLai("");
+      
+      // Reset form (ĐÃ CẬP NHẬT)
+      setHoten(""); 
+      setSdt(""); 
+      setEmail(""); 
+      setBangLai(""); 
       setTrangThaiNghiepVu("SanSang");
-      setLyDoChiTiet("");
-      setCCCD("");
-      setNgayCapCCCD("");
-      setNoiCapCCCD("");
-      setIdViTriHienTai(""); // <-- THÊM MỚI: Reset Vị trí
-
-      // navigate("/quan-ly/tai-xe"); // Điều hướng
-
-    } catch (error) {
-      console.log("Error :", error.message);
-      setError(error.message); // Hiển thị lỗi cho người dùng
+      setLyDoChiTiet(""); 
+      setCCCD(""); 
+      setNgayCapCCCD(getTodayString()); 
+      setNoiCapCCCD(""); 
+      setIdViTriHienTai("");
+      
+      fetchTaiXe(); // Tải lại danh sách
+    } catch (err) {
+      setError(err.message);
     }
   };
 
+  // --- Delete tài xế ---
+  const handleDelete = async (id) => {
+    if (!window.confirm("Bạn có chắc muốn xóa tài xế này?")) return;
+    try {
+      const res = await fetch(`${apiURL}/api/taixe/delete/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Xóa thất bại");
+      fetchTaiXe();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  // --- Filtered list theo search ---
+  const filteredList = TaiXeList.filter((tx) =>
+    (tx.Hoten || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (tx.Sdt || "").includes(searchTerm) ||
+    (tx.Email || "").toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <form onSubmit={HandleSubmit}>
-      <h3> Thêm tài xế mới </h3>
-      <div>
-        <label htmlFor="hoTen">Họ Tên</label>
-        <input id="hoTen" type="text" value={HoTen} onChange={(e) => setHoTen(e.target.value)} required />
-      </div>
-      <div>
-        <label htmlFor="sdt">Số điện thoại</label>
-        <input id="sdt" type="text" value={Sdt} onChange={(e) => setSdt(e.target.value)} required />
-      </div>
-      <div>
-        <label htmlFor="email">Email</label>
-        <input id="email" type="email" value={Email} onChange={(e) => setEmail(e.target.value)} required />
-      </div>
-      <div>
-        <label htmlFor="bangLai">Bằng Lái (Hạng)</label>
-        <input id="bangLai" type="text" value={BangLai} onChange={(e) => setBangLai(e.target.value)} required placeholder="VD: B2, C, FC..."/>
-      </div>
-      
-      {/* --- THAY ĐỔI: Input thành Select cho Trạng Thái --- */}
-      <div>
-        <label htmlFor="trangThai">Trạng Thái Nghiệp Vụ</label>
-        <select id="trangThai" value={TrangThaiNghiepVu} onChange={(e) => setTrangThaiNghiepVu(e.target.value)} required>
-          <option value="SanSang">Sẵn sàng (Đang rảnh)</option>
-          <option value="DangChay">Đang chạy (Đang vận chuyển)</option>
-          <option value="NghiPhep">Nghỉ phép</option>
-          <option value="KhongHoatDong">Không hoạt động</option>
-        </select>
-      </div>
-      
-      <div>
-        <label htmlFor="cccd">CCCD</label>
-        <input id="cccd" type="text" value={CCCD} onChange={(e) => setCCCD(e.target.value)} required />
-      </div>
-      <div>
-        <label htmlFor="ngayCap">Ngày Cấp CCCD</label>
-        <input id="ngayCap" type="date" value={NgayCapCCCD} onChange={(e) => setNgayCapCCCD(e.target.value)} required />
-      </div>
-      <div>
-        <label htmlFor="noiCap">Nơi Cấp CCCD</label>
-        <input id="noiCap" type="text" value={NoiCapCCCD} onChange={(e) => setNoiCapCCCD(e.target.value)} required />
-      </div>
+    <div className="container-fluid ">
+      <div className="row">
+        {/* Form trái */}
+        <div className="col-md-7"> {/* Tăng độ rộng form */}
+          <form onSubmit={handleSubmit} className="p-3 border rounded bg-light mb-3">
+            <h3 className="mb-4">Thêm Tài Xế Mới</h3>
+            
+            <div className="row mb-3">
+              <div className="col-md-6">
+                <label>Họ Tên</label>
+                <input type="text" className="form-control" value={Hoten} onChange={(e) => setHoten(e.target.value)} required />
+              </div>
+              <div className="col-md-6">
+                <label>Bằng Lái (VD: B2, C)</label>
+                <input type="text" className="form-control" value={BangLai} onChange={(e) => setBangLai(e.target.value)} required />
+              </div>
+            </div>
+            
+            <div className="row mb-3">
+              <div className="col-md-6">
+                <label>Số điện thoại</label>
+                <input type="text" className="form-control" value={Sdt} onChange={(e) => setSdt(e.target.value)} required />
+              </div>
+              <div className="col-md-6">
+                <label>Email</label>
+                <input type="email" className="form-control" value={Email} onChange={(e) => setEmail(e.target.value)} required />
+              </div>
+            </div>
 
-      {/* --- THÊM MỚI: Dropdown Vị Trí Hiện Tại --- */}
-      <div>
-        <label htmlFor="ViTri">Vị Trí Hiện Tại (Kho Bãi)</label>
-        <select 
-          id="ViTri" 
-          value={IdViTriHienTai} 
-          onChange={(e) => setIdViTriHienTai(e.target.value)} 
-          required
-          disabled={loadingKhoBai} // Vô hiệu hóa khi đang tải
-        >
-          <option value="" disabled>
-            {loadingKhoBai ? "Đang tải kho bãi..." : "-- Chọn kho bãi --"}
-          </option>
-          {KhoBaiList.map((kho) => (
-            <option key={kho.IdKhoBai} value={kho.IdKhoBai}>
-              {kho.TenKhoBai} ({kho.DiaChi})
-            </option>
-          ))}
-        </select>
+            {/* --- THÊM THÔNG TIN CCCD BỊ THIẾU --- */}
+            <h5 className="mt-4">Thông tin CCCD</h5>
+            <div className="row mb-3">
+              <div className="col-md-4">
+                <label>Số CCCD</label>
+                <input 
+                  type="text" 
+                  className="form-control" 
+                  value={CCCD} 
+                  onChange={(e) => setCCCD(e.target.value)} 
+                  required 
+                  maxLength={12}
+                />
+              </div>
+              <div className="col-md-4">
+                <label>Ngày Cấp CCCD</label>
+                <input 
+                  type="date" 
+                  className="form-control" 
+                  value={NgayCapCCCD} 
+                  onChange={(e) => setNgayCapCCCD(e.target.value)} 
+                  required 
+                />
+              </div>
+              <div className="col-md-4">
+                <label>Nơi Cấp CCCD</label>
+                <input 
+                  type="text" 
+                  className="form-control" 
+                  value={NoiCapCCCD} 
+                  onChange={(e) => setNoiCapCCCD(e.target.value)} 
+                  required 
+                />
+              </div>
+            </div>
+            {/* ------------------------------------ */}
+
+            <h5 className="mt-4">Thông tin nghiệp vụ</h5>
+            <div className="row mb-3">
+              <div className="col-md-6">
+                <label>Trạng Thái</label>
+                <select className="form-select" value={TrangThaiNghiepVu} onChange={(e) => setTrangThaiNghiepVu(e.target.value)}>
+                  <option value="SanSang">Sẵn sàng</option>
+                  <option value="DangChay">Đang chạy</option>
+                  <option value="NghiPhep">Nghỉ phép</option>
+                  <option value="KhongHoatDong">Không hoạt động</option>
+                </select>
+              </div>
+              <div className="col-md-6">
+                <label>Vị trí hiện tại (Kho bãi)</label>
+                <select className="form-select" value={IdViTriHienTai} onChange={(e) => setIdViTriHienTai(e.target.value)} required>
+                  <option value="">-- Chọn kho bãi --</option>
+                  {KhoBaiList.map(kho => (
+                    <option key={kho.IdKhoBai} value={kho.IdKhoBai}>{kho.TenKhoBai} ({kho.DiaChi})</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* --- THÊM INPUT LYDOCHITIET --- */}
+            {TrangThaiNghiepVu !== "SanSang" && (
+              <div className="mb-3">
+                <label>Lý Do Chi Tiết (Nghỉ phép, Xe hỏng,...)</label>
+                <input 
+                  type="text" 
+                  className="form-control" 
+                  value={LyDoChiTiet} 
+                  onChange={(e) => setLyDoChiTiet(e.target.value)} 
+                  placeholder="Nhập lý do cho trạng thái"
+                />
+              </div>
+            )}
+            {/* -------------------------------- */}
+
+            <button type="submit" className="btn btn-primary">Lưu Tài Xế</button>
+            {error && <p className="text-danger mt-2">{error}</p>}
+          </form>
+        </div>
+
+        {/* Sticky summary phải */}
+        <div className="col-md-5"> {/* Giảm độ rộng cột danh sách */}
+          <div className="sticky-top p-3 border bg-light" style={{ top: "20px", maxHeight: "90vh", overflowY: "auto" }}>
+            <h5>📋 Danh sách Tài Xế</h5>
+
+            <div className="mb-2">
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Tìm kiếm theo tên, sdt, email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
+            {loading ? (
+              <p>Đang tải...</p>
+            ) : filteredList.length === 0 ? (
+              <p>Không có tài xế nào</p>
+            ) : (
+              // Bảng (giữ nguyên)
+              <table className="table table-striped table-sm">
+                <thead>
+                  <tr>
+                    <th>Họ Tên</th>
+                    <th>SDT</th>
+                    <th>Trạng Thái</th>
+                    <th>Hành Động</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredList.map(tx => (
+                    <tr key={tx.IdTaiXe}>
+                      <td>{tx.Hoten}</td>
+                      <td>{tx.Sdt}</td>
+                      <td>{tx.TrangThaiNghiepVu}</td>
+                      <td>
+                        <button className="btn btn-sm btn-danger" onClick={() => handleDelete(tx.IdTaiXe)}>Xóa</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
       </div>
-
-      <div>
-        <label htmlFor="lyDo">Lý Do Chi Tiết (Nếu trạng thái không sẵn sàng)</label>
-        <input id="lyDo" type="text" value={LyDoChiTiet} onChange={(e) => setLyDoChiTiet(e.target.value)} />
-      </div>
-
-      <button type="submit"> Lưu tài xế </button>
-
-      {/* --- THÊM MỚI: Hiển thị lỗi --- */}
-      {error && <p style={{ color: "red" }}>{error}</p>}
-    </form>
+    </div>
   );
 }
 

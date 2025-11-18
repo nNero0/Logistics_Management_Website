@@ -23,10 +23,10 @@ const TaiXeControllers = {
   async CreateTaiXe(req, res) {
     try {
       console.log("CREATE TAI XE RECIEVED:", req.body);
-      const { HoTen, Sdt, Email, BangLai, TrangThaiNghiepVu, LyDoChiTiet, CCCD, NgayCapCCCD, NoiCapCCCD, IdKhoBai } =
+      const { Hoten, Sdt, Email, BangLai, TrangThaiNghiepVu, LyDoChiTiet, CCCD, NgayCapCCCD, NoiCapCCCD, IdKhoBai } =
         req.body;
       const newTaiXe = await TaiXe.create({
-        HoTen,
+        Hoten,
         Sdt,
         Email,
         BangLai,
@@ -73,6 +73,18 @@ const TaiXeControllers = {
       res.status(500).json({ message: "Lỗi server", error: error.message });
     }
   },
+  async deleteTaiXe(req, res) {
+  try {
+    const { id } = req.params;
+    const taiXe = await TaiXe.findByPk(id);
+    if (!taiXe) return res.status(404).json({ message: "Tài xế không tồn tại" });
+    await taiXe.destroy();
+    res.status(200).json({ message: "Xóa thành công" });
+  } catch (err) {
+    res.status(500).json({ message: "Lỗi server", error: err.message });
+  }
+}
+
 };
 
 export default TaiXeControllers;

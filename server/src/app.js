@@ -9,6 +9,8 @@ import KhachHangRoutes from "./routes/KhachHangRoutes.js";
 import LoTrinhRoutes from "./routes/LoTrinhRoutes.js";
 import DonVanRoutes from "./routes/DonVanRoutes.js";
 import DieuPhoiRoutes from "./routes/DieuPhoiRoutes.js";
+import ThongKeRoutes from "./routes/ThongKeRoutes.js";
+import InvoiceRoutes from "./routes/InvoiceRoutes.js";
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 import cors from "cors";
 const app = express();
@@ -31,7 +33,8 @@ app.use("/api/lotrinh", LoTrinhRoutes);
 app.use("/api/donvan", DonVanRoutes);
 app.use("/api/hanghoa", HangHoaRoutes);
 app.use("/api/dieuphoi", DieuPhoiRoutes);
-
+app.use("/api/thongke", ThongKeRoutes);
+app.use("/api/invoice", InvoiceRoutes);
 // app.use(notFound);
 // app.use(errorHandler);
 

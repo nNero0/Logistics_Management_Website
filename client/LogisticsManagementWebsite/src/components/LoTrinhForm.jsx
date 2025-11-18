@@ -1,156 +1,117 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-
-// Giả sử bạn có một thư viện để kéo-thả, ví dụ 'react-beautiful-dnd'
-// Nếu không, chúng ta sẽ làm phiên bản không kéo-thả trước.
-// Ở đây tôi sẽ làm phiên bản đơn giản (không kéo-thả) để dễ hiểu.
+// import { useNavigate } from "react-router-dom"; // 1. Bỏ useNavigate
 
 function LoTrinhForm() {
-  // --- State cho thông tin chung ---
-  const [TenLoTrinh, setTenLoTrinh] = useState(""); // <-- STATE MỚI
-  const [TrangThai, setTrangThai] = useState("Sẵn sàng"); // Đặt giá trị mặc định
+  // const navigate = useNavigate(); // 1. Bỏ navigate
+
+  // --- State cho Form (Giữ nguyên) ---
+  const [TenLoTrinh, setTenLoTrinh] = useState("");
+  const [TrangThai, setTrangThai] = useState("Sẵn sàng");
   const [ETC, setETC] = useState(0);
   const [KhoangCach, setKhoangCach] = useState(0);
 
-  // --- State cho việc xây dựng lộ trình ---
-  const [khoBaiList, setKhoBaiList] = useState([]); // Master list các kho
-  const [selectedKhoId, setSelectedKhoId] = useState(""); // Kho đang được chọn trong dropdown
-  const [dsTramDung, setDsTramDung] = useState([]); // <-- STATE MỚI: Các trạm đã thêm vào lộ trình
+  const [khoBaiList, setKhoBaiList] = useState([]);
+  const [selectedKhoId, setSelectedKhoId] = useState("");
+  const [dsTramDung, setDsTramDung] = useState([]);
 
-  // --- State cho UI ---
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const [loadingKhoBai, setLoadingKhoBai] = useState(true); // 2. Đổi tên 'loading'
 
-  // Fetch danh sách kho bãi (master list)
+  // --- 3. STATE MỚI: Cho Panel Danh Sách ---
+  const [loTrinhList, setLoTrinhList] = useState([]);
+  const [loadingLoTrinhList, setLoadingLoTrinhList] = useState(true);
+
+  const apiURL = import.meta.env.VITE_APP_API;
+  const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
+
+  // --- Fetch Kho Bãi (cho Dropdown) ---
   useEffect(() => {
     const fetchKhoBai = async () => {
       try {
-        const apiURL = import.meta.env.VITE_APP_API;
-        const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
         const response = await fetch(`${apiURL}/api/khobai`, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
         setKhoBaiList(data);
-        setLoading(false);
       } catch (error) {
-        console.error("Failed to fetch locations:", error);
         setError(error.message);
-        setLoading(false);
+      } finally {
+        setLoadingKhoBai(false); // 2. Sửa tên state
       }
     };
     fetchKhoBai();
-  }, []);
+  }, [apiURL, token]); // Thêm dependencies
 
-  // --- Logic thêm/xóa trạm dừng ---
+  // --- 4. FETCH MỚI: Tải danh sách Lộ Trình (cho Panel) ---
+  const fetchLoTrinhList = async () => {
+    setLoadingLoTrinhList(true);
+    try {
+      // Giả sử API GET lộ trình của bạn là /api/lotrinh
+      const res = await fetch(`${apiURL}/api/lotrinh`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Không tải được danh sách lộ trình");
+      const data = await res.json();
+      setLoTrinhList(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoadingLoTrinhList(false);
+    }
+  };
 
-  /**
-   * Thêm kho được chọn vào danh sách trạm dừng
-   */
+  // Tải danh sách lộ trình khi component load
+  useEffect(() => {
+    fetchLoTrinhList();
+  }, [apiURL, token]); // Thêm dependencies
+
+  // --- Logic Thêm/Xóa/Di chuyển trạm (Giữ nguyên) ---
   const handleThemTram = () => {
-    if (!selectedKhoId) {
-      alert("Vui lòng chọn một kho bãi để thêm.");
-      return;
-    }
-
-    // Kiểm tra xem kho này đã được thêm chưa
+    if (!selectedKhoId) return alert("Vui lòng chọn một kho bãi để thêm.");
     const daTonTai = dsTramDung.some((tram) => tram.IdKhoBai === parseInt(selectedKhoId));
-    if (daTonTai) {
-      alert("Kho bãi này đã có trong lộ trình.");
-      return;
-    }
-
-    // Tìm thông tin đầy đủ của kho từ master list
+    if (daTonTai) return alert("Kho bãi này đã có trong lộ trình.");
     const khoToAdd = khoBaiList.find((kho) => kho.IdKhoBai === parseInt(selectedKhoId));
-
     if (khoToAdd) {
-      setDsTramDung([...dsTramDung, khoToAdd]); // Thêm kho vào danh sách
-      setSelectedKhoId(""); // Reset dropdown
+      setDsTramDung([...dsTramDung, khoToAdd]);
+      setSelectedKhoId("");
     }
   };
-
-  /**
-   * Xóa một trạm dừng khỏi danh sách
-   */
-  const handleXoaTram = (idKhoBaiToRemove) => {
-    setDsTramDung(dsTramDung.filter((tram) => tram.IdKhoBai !== idKhoBaiToRemove));
-  };
-
-  /**
-   * Di chuyển trạm lên
-   */
-  const moveTramUp = (index) => {
-    if (index === 0) return; // Không thể di chuyển item đầu tiên
-
-    // Tạo một bản sao mới của mảng
+  const handleXoaTram = (id) => setDsTramDung(dsTramDung.filter((tram) => tram.IdKhoBai !== id));
+  const moveTramUp = (i) => {
+    if (i === 0) return;
     const newList = [...dsTramDung];
-
-    // Dùng array destructuring để swap (hoán đổi) 2 phần tử
-    [newList[index - 1], newList[index]] = [newList[index], newList[index - 1]];
-
-    setDsTramDung(newList); // Cập nhật state với mảng đã sắp xếp
+    [newList[i - 1], newList[i]] = [newList[i], newList[i - 1]];
+    setDsTramDung(newList);
   };
-
-  /**
-   * Di chuyển trạm xuống
-   */
-  const moveTramDown = (index) => {
-    if (index === dsTramDung.length - 1) return; // Không thể di chuyển item cuối cùng
-
-    // Tạo một bản sao mới của mảng
+  const moveTramDown = (i) => {
+    if (i === dsTramDung.length - 1) return;
     const newList = [...dsTramDung];
-
-    // Dùng array destructuring để swap (hoán đổi) 2 phần tử
-    [newList[index], newList[index + 1]] = [newList[index + 1], newList[index]];
-
-    setDsTramDung(newList); // Cập nhật state với mảng đã sắp xếp
+    [newList[i], newList[i + 1]] = [newList[i + 1], newList[i]];
+    setDsTramDung(newList);
   };
 
-  // --- Xử lý Submit Form ---
-
+  // --- 5. Cập nhật HandleSubmit ---
   const HandleSubmit = async (event) => {
     event.preventDefault();
     setError(null);
+    if (dsTramDung.length < 2) return setError("Một lộ trình phải có ít nhất 2 trạm dừng.");
+    if (!TenLoTrinh) return setError("Vui lòng nhập tên lộ trình.");
 
-    // Validation
-    if (dsTramDung.length < 2) {
-      setError("Một lộ trình phải có ít nhất 2 trạm dừng (điểm đầu và cuối).");
-      return;
-    }
-    if (!TenLoTrinh) {
-      setError("Vui lòng nhập tên cho lộ trình.");
-      return;
-    }
-
-    // Lấy danh sách ID kho bãi theo đúng thứ tự
     const dsKhoBaiIds = dsTramDung.map((tram) => tram.IdKhoBai);
-
-    // Đây là object data khớp với API Controller chúng ta đã tạo
     const LoTrinhData = {
-      TenLoTrinh: TenLoTrinh,
+      TenLoTrinh,
       trangThai: TrangThai,
       etc: parseFloat(ETC),
       khoangCach: parseFloat(KhoangCach),
-      dsKhoBai: dsKhoBaiIds, // Mảng các ID [1, 5, 3]
+      dsKhoBai: dsKhoBaiIds,
     };
 
-    console.log("Submitting Lộ Trình Data:", LoTrinhData);
-
     try {
-      const apiURL = import.meta.env.VITE_APP_API;
-      const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
-
-      // API endpoint đã thay đổi theo thiết kế controller mới
       const response = await fetch(`${apiURL}/api/lotrinh/createlotrinh`, {
-        // URL đã sửa
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -164,128 +125,183 @@ function LoTrinhForm() {
         throw new Error(data.message || "Tạo lộ trình thất bại");
       }
 
-      console.log("Lộ trình được tạo!");
-      navigate("/createlotrinh"); // Điều hướng về trang chính
+      // navigate("/createlotrinh"); // Bỏ dòng này
+      
+      // Reset form
+      setTenLoTrinh("");
+      setTrangThai("Sẵn sàng");
+      setETC(0);
+      setKhoangCach(0);
+      setDsTramDung([]);
+      setSelectedKhoId("");
+      setError(null);
+
+      alert("Tạo lộ trình thành công!");
+      fetchLoTrinhList(); // Tải lại danh sách bên phải
+
     } catch (error) {
       setError(error.message);
-      console.log("Error :", error.message);
+    }
+  };
+  
+  // === 6. HÀM MỚI: Xử lý Xóa ===
+  const handleDelete = async (id) => {
+    if (!window.confirm("Bạn có chắc muốn xóa lộ trình này?")) return;
+    try {
+      // Giả sử API Xóa của bạn là /api/lotrinh/delete/:id
+      const res = await fetch(`${apiURL}/api/lotrinh/delete/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Xóa thất bại");
+      fetchLoTrinhList(); // Tải lại danh sách
+    } catch (err) {
+      setError(err.message);
     }
   };
 
-  if (loading) {
-    return <p>Loading location data...</p>;
-  }
+
+  if (loadingKhoBai) return <p>Loading location data...</p>;
 
   return (
-    <form onSubmit={HandleSubmit} style={{ maxWidth: "600px", margin: "auto" }}>
-      <h3>Tạo Lộ Trình Chi Tiết</h3>
+    // === 7. BỐ CỤC MỚI ===
+    <div className="d-flex gap-4">
+      
+      {/* --- Form bên trái --- */}
+      <form onSubmit={HandleSubmit} className="p-4 border rounded bg-light flex-grow-1">
+        <h3 className="mb-4">Tạo Lộ Trình Chi Tiết</h3>
 
-      {/* Phần 1: Thông tin chung */}
-      <div style={{ marginBottom: "15px" }}>
-        <label htmlFor="TenLoTrinh">Tên Lộ Trình</label>
-        <input
-          id="TenLoTrinh"
-          type="text"
-          value={TenLoTrinh}
-          onChange={(e) => setTenLoTrinh(e.target.value)}
-          required
-          placeholder="Ví dụ: Tuyến HCM - Hà Nội (Qua Đà Nẵng)"
-        />
-      </div>
-
-      {/* Phần 2: Xây dựng Lộ Trình */}
-      <h4>Các Trạm Dừng</h4>
-      <div style={{ border: "1px solid #ccc", padding: "10px", borderRadius: "5px" }}>
-        {/* Dropdown để Thêm trạm */}
-        <div style={{ display: "flex", marginBottom: "10px" }}>
-          <select
-            value={selectedKhoId}
-            onChange={(e) => setSelectedKhoId(e.target.value)}
-            style={{ flexGrow: 1, marginRight: "10px" }}
-          >
-            <option value="">-- Chọn kho bãi để thêm --</option>
-            {khoBaiList.map((kho) => (
-              <option key={kho.IdKhoBai} value={kho.IdKhoBai}>
-                {kho.DiaChi} (ID: {kho.IdKhoBai})
-              </option>
-            ))}
-          </select>
-          <button type="button" onClick={handleThemTram}>
-            Thêm
-          </button>
+        {/* Thông tin chung */}
+        <div className="mb-3">
+          <label htmlFor="TenLoTrinh" className="form-label">Tên Lộ Trình</label>
+          <input
+            type="text"
+            id="TenLoTrinh"
+            className="form-control"
+            placeholder="Ví dụ: Tuyến HCM - Hà Nội (Qua Đà Nẵng)"
+            value={TenLoTrinh}
+            onChange={(e) => setTenLoTrinh(e.target.value)}
+            required
+          />
         </div>
 
-        {/* Danh sách các trạm đã thêm */}
-        <p>Thứ tự lộ trình: (Trạm đầu tiên là điểm bắt đầu, trạm cuối là điểm kết thúc)</p>
-        <ol style={{ paddingLeft: "20px" }}>
-          {dsTramDung.map((tram, index) => (
-            <li
-              key={tram.IdKhoBai}
-              style={{ marginBottom: "10px", display: "flex", alignItems: "center", justifyContent: "space-between" }}
+        {/* Xây dựng Lộ Trình */}
+        <h4 className="mt-4">Các Trạm Dừng</h4>
+        <div className="border p-3 rounded mb-3">
+          <div className="input-group mb-3">
+            <select
+              className="form-select"
+              value={selectedKhoId}
+              onChange={(e) => setSelectedKhoId(e.target.value)}
             >
-              <span>
-                {index + 1}. {tram.DiaChi}
-              </span>
-              <div>
-                <button
-                  type="button"
-                  onClick={() => moveTramUp(index)}
-                  disabled={index === 0}
-                  style={{ marginRight: "5px" }}
+              <option value="">-- Chọn kho bãi để thêm --</option>
+              {khoBaiList.map((kho) => (
+                <option key={kho.IdKhoBai} value={kho.IdKhoBai}>{kho.DiaChi} (ID: {kho.IdKhoBai})</option>
+              ))}
+            </select>
+            <button type="button" className="btn btn-primary ms-2" onClick={handleThemTram}>
+              Thêm
+            </button>
+          </div>
+
+          <ol
+            style={{
+              paddingLeft: "20px",
+              maxHeight: "300px",
+              overflowY: "auto",
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+            }}
+            className="no-scrollbar"
+          >
+            {dsTramDung.map((tram, index) => (
+              <li
+                key={tram.IdKhoBai}
+                style={{ marginBottom: "10px", display: "flex", alignItems: "center", justifyContent: "space-between" }}
+              >
+                <span>
+                  {index + 1}. {tram.TenKhoBai} ({tram.DiaChi})
+                </span>
+                <div>
+                  <button type="button" onClick={() => moveTramUp(index)} disabled={index === 0} style={{ marginRight: "5px", border: '1px solid #ccc' }} className="btn btn-sm">↑</button>
+                  <button type="button" onClick={() => moveTramDown(index)} disabled={index === dsTramDung.length - 1} style={{ marginRight: "5px", border: '1px solid #ccc' }} className="btn btn-sm">↓</button>
+                  <button type="button" onClick={() => handleXoaTram(tram.IdKhoBai)} className="btn btn-sm btn-outline-danger">Xóa</button>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        {/* Thông tin chi tiết */}
+        <div className="mb-3">
+          <label htmlFor="TrangThai" className="form-label">Trạng thái</label>
+          <select
+            id="TrangThai"
+            className="form-select"
+            value={TrangThai}
+            onChange={(e) => setTrangThai(e.target.value)}
+            required
+          >
+            <option value="Sẵn sàng">Sẵn sàng</option>
+            <option value="Cần sự cố">Cần sự cố</option>
+            <option value="Không thể vận hành">Không thể vận hành</option>
+          </select>
+        </div>
+
+        <div className="mb-3">
+          <label htmlFor="ETC" className="form-label">Thời gian dự kiến (giờ)</label>
+          <input
+            type="number"
+            id="ETC"
+            className="form-control"
+            value={ETC}
+            onChange={(e) => setETC(e.target.value)}
+            required
+          />
+        </div>
+
+        <div className="mb-3">
+          <label htmlFor="khoangCach" className="form-label">Khoảng Cách (km)</label>
+          <input
+            type="number"
+            id="khoangCach"
+            className="form-control"
+            value={KhoangCach}
+            onChange={(e) => setKhoangCach(e.target.value)}
+            required
+          />
+        </div>
+
+        <button type="submit" className="btn btn-success w-100">Lưu Lộ Trình</button>
+        {error && <div className="text-danger mt-2">{error}</div>}
+      </form>
+
+      {/* --- Sticky Panel bên phải (MỚI) --- */}
+      <div className="border rounded p-3 bg-white" style={{ width: "400px", height: "90vh", overflowY: "auto", position: "sticky", top: "10px" }}>
+        <h5>Danh sách lộ trình</h5>
+        {loadingLoTrinhList ? <p>Đang tải...</p> : (
+          <ul className="list-group">
+            {loTrinhList.map(lt => (
+              // Giả sử API trả về có IdLoTrinh
+              <li key={lt.IdLoTrinh} className="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                  <strong>{lt.TenLoTrinh}</strong>
+                  <br/>
+                  <small>Khoảng cách: {lt.khoangCach}km - Trạng thái: {lt.trangThai}</small>
+                </div>
+                <button 
+                  className="btn btn-sm btn-danger" 
+                  onClick={() => handleDelete(lt.IdLoTrinh)} // Giả sử API xóa dùng IdLoTrinh
                 >
-                  ↑
-                </button>
-                <button
-                  type="button"
-                  onClick={() => moveTramDown(index)}
-                  disabled={index === dsTramDung.length - 1}
-                  style={{ marginRight: "5px" }}
-                >
-                  ↓
-                </button>
-                <button type="button" onClick={() => handleXoaTram(tram.IdKhoBai)} style={{ color: "red" }}>
                   Xóa
                 </button>
-              </div>
-            </li>
-          ))}
-        </ol>
-        {dsTramDung.length === 0 && <p style={{ textAlign: "center", color: "#888" }}>Chưa có trạm dừng nào</p>}
+              </li>
+            ))}
+            {loTrinhList.length === 0 && <li className="list-group-item">Không có lộ trình nào</li>}
+          </ul>
+        )}
       </div>
-
-      <h4 style={{ marginTop: "20px" }}>Thông tin chi tiết</h4>
-
-      <div>
-        <label htmlFor="TrangThai">Trạng thái</label>
-        <select id="TrangThai" value={TrangThai} onChange={(e) => setTrangThai(e.target.value)} required>
-          <option value="Sẵn sàng">Sẵn sàng</option>
-          <option value="Cần sự cố">Cần sự cố</option>
-          <option value="Không thể vận hành">Không thể vận hành</option>
-        </select>
-      </div>
-
-      <div>
-        <label htmlFor="ETC">Thời gian dự kiến ( giờ )</label>
-        <input id="ETC" type="number" value={ETC} onChange={(e) => setETC(e.target.value)} required />
-      </div>
-
-      <div>
-        <label htmlFor="khoangCach">Khoảng Cách (km)</label>
-        <input
-          id="khoangCach"
-          type="number"
-          value={KhoangCach}
-          onChange={(e) => setKhoangCach(e.target.value)}
-          required
-        />
-      </div>
-
-      {/* Nút Submit */}
-      <button type="submit" style={{ width: "100%", padding: "10px", marginTop: "20px" }}>
-        Lưu Lộ Trình
-      </button>
-      {error && <p style={{ color: "red", marginTop: "10px" }}>{error}</p>}
-    </form>
+    </div>
   );
 }
 

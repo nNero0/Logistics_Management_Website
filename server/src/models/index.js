@@ -113,8 +113,20 @@ if (!global.modelsInitialized) {
   // LoTrinh.hasMany(DonVan, { foreignKey: "IdLoTrinh" });
 
   // ALTER TABLE HangHoa ... FOREIGN KEY (IdDonVan) REFERENCES DonVan
-  DonVan.hasMany(HangHoa, { foreignKey: "IdDonVan" });
-  HangHoa.belongsTo(DonVan, { foreignKey: "IdDonVan" });
+ // (Trong file DonVan.js hoặc index.js)
+DonVan.hasMany(HangHoa, { 
+  foreignKey: { // <-- Sửa ở đây
+    name: 'IdDonVan',
+    onDelete: 'CASCADE' // <-- Thêm onDelete vào đây
+  }, 
+  as: 'hangHoas' 
+});
+//  HangHoa.belongsTo(DonVan, { 
+//   foreignKey: { 
+//     name: 'IdDonVan' // <-- Chỉ cần tên khóa ngoại là đủ
+//   }, 
+//   as: 'donVan' 
+// });
 
   // ALTER TABLE Quyen ... FOREIGN KEY (IdRole) REFERENCES VaiTro
   VaiTro.hasMany(Quyen, { foreignKey: "IdRole" });

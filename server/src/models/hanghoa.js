@@ -58,9 +58,13 @@ const HangHoa = sequelize.define(
     ChieuCao: {
       type: DataTypes.DECIMAL(8, 2),
       allowNull: false,
+    },  
+    NgayTao: {
+      type: DataTypes.DATE,
+      allowNull: false,
     },
   },
-  { tableName: "HangHoa", timestamps:false }
+  { tableName: "HangHoa", createdAt:'NgayTao' ,updatedAt:false}
 );
 
 export default HangHoa;

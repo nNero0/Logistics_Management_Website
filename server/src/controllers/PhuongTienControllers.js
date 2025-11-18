@@ -79,6 +79,17 @@ const PhuongTienControllers = {
       res.status(500).json({ message: "Lỗi server", error: error.message });
     }
   },
+   async deletePhuongTien(req, res) {
+    try {
+      const id = req.params.id;
+      const pt = await PhuongTien.findByPk(id);
+      if (!pt) return res.status(404).json({ message: "Phương tiện không tồn tại" });
+      await pt.destroy();
+      res.status(200).json({ message: "Phương tiện đã bị xóa" });
+    } catch (err) {
+      res.status(500).json({ message: "Lỗi server", error: err.message });
+    }
+  }
 };
 
 export default PhuongTienControllers;

@@ -1,4 +1,4 @@
-import { KhachHang,DonVan } from "../models/index.js";
+import { KhachHang, DonVan } from "../models/index.js";
 
 const KhachHangControllers = {
   async CreateKhachHang(req, res) {
@@ -24,20 +24,31 @@ const KhachHangControllers = {
   },
   async getAllKhachHang(req, res) {
     try {
-      const allKhachHang = await KhachHang.findAll(
-      //   {
+      const allKhachHang = await KhachHang
+        .findAll
+        //   {
 
-      //   include: [
-      //     { model: DonVan } 
-      //   ]
-      // }
-    );
-      
+        //   include: [
+        //     { model: DonVan }
+        //   ]
+        // }
+        ();
+
       res.status(200).json(allKhachHang);
-
     } catch (error) {
       console.error("Lỗi khi lấy danh sách khách hàng:", error);
       res.status(500).json({ message: "Đã có lỗi xảy ra", error: error.message });
+    }
+  },
+  async deleteKhachHang(req, res) {
+    try {
+      const id = req.params.id;
+      const kh = await KhachHang.findByPk(id);
+      if (!kh) return res.status(404).json({ message: "kh không tồn tại" });
+      await kh.destroy();
+      res.status(200).json({ message: "kh đã bị xóa" });
+    } catch (err) {
+      res.status(500).json({ message: "Lỗi server", error: err.message });
     }
   },
 };

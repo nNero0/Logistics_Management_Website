@@ -245,7 +245,7 @@ const LoTrinhControllers = {
    */
   async deleteLoTrinh(req, res) {
     const { id } = req.params;
-    const t = await sequelize.transaction();
+    const t = await sequelize.startUnmanagedTransaction();
     try {
       const loTrinh = await LoTrinh.findByPk(id);
       if (!loTrinh) {

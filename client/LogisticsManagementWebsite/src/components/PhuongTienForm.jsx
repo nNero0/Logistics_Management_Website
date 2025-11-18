@@ -1,196 +1,220 @@
 import React, { useState, useEffect } from "react";
-// import { useNavigate } from "react-router-dom"; // Giả sử bạn sẽ cần điều hướng
+
 
 function PhuongTienForm() {
-  // --- State cho dữ liệu form ---
   const [BienSo, SetBienSo] = useState("");
   const [Loai, SetLoai] = useState("");
-  const [TaiTrong, SetTaiTrong] = useState(0);
-  const [TrongTai, SetTrongTai] = useState(0);
-  const [TrangThai, SetTrangThai] = useState("SanSang"); // Đặt giá trị mặc định
+  const [TaiTrong, SetTaiTrong] = useState(0); // Tải trọng hiện tại (nên = 0 khi tạo)
+  const [TrongTai, SetTrongTai] = useState(0); // Tải trọng tối đa (cần nhập)
+  const [TrangThai, SetTrangThai] = useState("SanSang");
   const [GiayDangKyXeSo, SetGiayDangKyXeSo] = useState("");
   const [CDaiThungChua, SetCDaiThungChua] = useState(0);
   const [CRongThungChua, SetCRongThungChua] = useState(0);
   const [CCaoThungChua, SetCCaoThungChua] = useState(0);
-  
-  // --- State mới cho Vị trí (Kho Bãi) ---
-  const [IdViTriHienTai, setIdViTriHienTai] = useState(""); // Lưu ID Kho Bãi
-  const [KhoBaiList, setKhoBaiList] = useState([]); // Lưu danh sách Kho Bãi
 
-  // --- State cho UI ---
+  const [IdViTriHienTai, setIdViTriHienTai] = useState("");
+  const [KhoBaiList, setKhoBaiList] = useState([]);
+  const [PhuongTienList, setPhuongTienList] = useState([]);
   const [loadingKhoBai, setLoadingKhoBai] = useState(true);
+  const [loadingPT, setLoadingPT] = useState(true);
   const [error, setError] = useState(null);
-  // const navigate = useNavigate();
 
-  // --- Tải danh sách Kho Bãi khi form được mount ---
+  const apiURL = import.meta.env.VITE_APP_API;
+  const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
+
+  // --- Load KhoBai (Đã thêm check 401) ---
   useEffect(() => {
     const fetchKhoBai = async () => {
       try {
-        const apiURL = import.meta.env.VITE_APP_API;
-        // Đảm bảo bạn đã có token
-        const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
-        if (!token) throw new Error("Chưa đăng nhập");
-
-        const response = await fetch(`${apiURL}/api/khobai`, {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+        const res = await fetch(`${apiURL}/api/khobai`, {
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         });
-
-        if (!response.ok) {
-          throw new Error("Không thể tải danh sách kho bãi");
-        }
-        
-        const data = await response.json();
+        if (res.status === 401) return handleLogoutAndRedirect(); // Check 401
+        if (!res.ok) throw new Error("Không thể tải kho bãi");
+        const data = await res.json();
         setKhoBaiList(data);
-        setLoadingKhoBai(false);
       } catch (err) {
         setError(err.message);
+      } finally {
         setLoadingKhoBai(false);
       }
     };
-
     fetchKhoBai();
-  }, []); // Chạy 1 lần
+  }, [apiURL, token]); // Thêm dependencies
 
-  const HandleSubmit = async (event) => {
-    event.preventDefault();
-    setError(null); // Xóa lỗi cũ
-
-    if (!IdViTriHienTai) {
-        setError("Vui lòng chọn vị trí (kho bãi) cho phương tiện.");
-        return;
+  // --- Load PhuongTien (Đã thêm check 401) ---
+  const fetchPhuongTien = async () => {
+    setLoadingPT(true);
+    try {
+      const res = await fetch(`${apiURL}/api/phuongtien`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.status === 401) return handleLogoutAndRedirect(); // Check 401
+      if (!res.ok) throw new Error("Không tải được danh sách phương tiện");
+      const data = await res.json();
+      setPhuongTienList(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoadingPT(false);
     }
+  };
 
-    const PhuongTienData = {
-      BienSo: BienSo,
-      Loai: Loai,
-      TaiTrong: Number(TaiTrong),
-      TrongTai: Number(TrongTai),
-      TrangThai: TrangThai,
-      GiayDangKyXeSo: GiayDangKyXeSo,
-      CDaiThungChua: Number(CDaiThungChua),
-      CRongThungChua: Number(CRongThungChua),
-      CCaoThungChua: Number(CCaoThungChua),
-      IdKhoBai: Number(IdViTriHienTai), // <-- Thêm ID Vị trí (phải là số)
+  useEffect(() => {
+    fetchPhuongTien();
+  }, [apiURL, token]); // Thêm dependencies
+
+  // --- Submit Form (Đã thêm check 401) ---
+  const HandleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    if (!IdViTriHienTai) {
+      setError("Vui lòng chọn kho bãi");
+      return;
+    }
+    const payload = {
+      BienSo, Loai, TaiTrong: Number(TaiTrong), TrongTai: Number(TrongTai),
+      TrangThai, GiayDangKyXeSo, CDaiThungChua: Number(CDaiThungChua),
+      CRongThungChua: Number(CRongThungChua), CCaoThungChua: Number(CCaoThungChua),
+      IdKhoBai: Number(IdViTriHienTai)
     };
 
     try {
-      const apiURL = import.meta.env.VITE_APP_API;
-      const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
-
-      const response = await fetch(`${apiURL}/api/phuongtien/createphuongtien`, {
+      const res = await fetch(`${apiURL}/api/phuongtien/createphuongtien`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // <-- Thêm Auth Token
-        },
-        body: JSON.stringify(PhuongTienData),
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(payload),
       });
-
-      if (!response.ok) {
-        console.error("Error:", response.status, response.statusText);
-        const data = await response.json();
-        throw new Error(data.message || "Tạo phương tiện thất bại");
-      }
-
-      const NewPhuongTien = await response.json();
-      console.log("PhuongTien duoc tao ", NewPhuongTien);
-      
+      if (res.status === 401) return handleLogoutAndRedirect(); // Check 401
+      if (!res.ok) throw new Error("Tạo phương tiện thất bại");
       alert("Tạo phương tiện thành công!");
+      // reset form
+      SetBienSo(""); SetLoai(""); SetTaiTrong(0); SetTrongTai(0);
+      SetTrangThai("SanSang"); SetGiayDangKyXeSo("");
+      SetCDaiThungChua(0); SetCRongThungChua(0); SetCCaoThungChua(0); setIdViTriHienTai("");
+      fetchPhuongTien(); // reload list
+    } catch (err) {
+      setError(err.message);
+    }
+  };
 
-      // Reset form
-      SetBienSo("");
-      SetLoai("");
-      SetTaiTrong(0);
-      SetTrongTai(0);
-      SetTrangThai("SanSang");
-      SetGiayDangKyXeSo("");
-      SetCDaiThungChua(0);
-      SetCRongThungChua(0);
-      SetCCaoThungChua(0);
-      setIdViTriHienTai(""); // Reset vị trí
-
-      // navigate("/quan-ly/phuong-tien"); // Điều hướng về trang danh sách
-    } catch (error) {
-      console.log("Error :", error);
-      setError(error.message); // Hiển thị lỗi cho người dùng
+  // --- Delete PhuongTien (Đã thêm check 401) ---
+  const handleDelete = async (id) => {
+    if (!window.confirm("Bạn có chắc muốn xóa phương tiện này?")) return;
+    try {
+      const res = await fetch(`${apiURL}/api/phuongtien/delete/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.status === 401) return handleLogoutAndRedirect(); // Check 401
+      if (!res.ok) throw new Error("Xóa thất bại");
+      fetchPhuongTien();
+    } catch (err) {
+      setError(err.message);
     }
   };
 
   return (
-    <form onSubmit={HandleSubmit}>
-      <h3> Thêm phương tiện mới </h3>
-      <div>
-        <label htmlFor="BienSo">Biển số</label>
-        <input id="BienSo" type="text" value={BienSo} onChange={(e) => SetBienSo(e.target.value)} required />
-      </div>
-      <div>
-        <label htmlFor="Loai">Loại Phương tiện</label>
-        <input id="Loai" type="text" value={Loai} onChange={(e) => SetLoai(e.target.value)} required placeholder="VD: Xe tải 5 tấn, Container..."/>
-      </div>
-      <div>
-        <label htmlFor="TaiTrong">Tải Trọng (kg)</label>
-        <input id="TaiTrong" type="number" value={TaiTrong} onChange={(e) => SetTaiTrong(e.target.value)} required />
-      </div>
-      <div>
-        <label htmlFor="TrongTai">Trọng Tải (kg)</label>
-        <input id="TrongTai" type="number" value={TrongTai} onChange={(e) => SetTrongTai(e.target.value)} required />
-      </div>
+    // 2. SỬA LỖI: Xóa 1 thẻ <form> bị lồng
+    <div className="container-fluid">
+      <div className="row">
+        {/* --- Form bên trái (Tăng độ rộng) --- */}
+        <div className="col-md-7">
+          <form onSubmit={HandleSubmit} className="p-4 border rounded bg-light flex-grow-1">
+            <h3 className="mb-4">Thêm phương tiện mới</h3>
 
-      {/* --- THAY ĐỔI: Input thành Select cho Trạng Thái --- */}
-      <div>
-        <label htmlFor="TrangThai">Trạng Thái</label>
-        <select id="TrangThai" value={TrangThai} onChange={(e) => SetTrangThai(e.target.value)} required>
-          <option value="SanSang">Sẵn sàng (Đang rảnh)</option>
-          <option value="DangChay">Đang chạy (Đang vận chuyển)</option>
-          <option value="BaoTri">Đang bảo trì</option>
-          <option value="KhongHoatDong">Không hoạt động</option>
-        </select>
-      </div>
+            <div className="mb-3">
+              <label htmlFor="BienSo" className="form-label">Biển số</label>
+              <input id="BienSo" type="text" className="form-control" value={BienSo} onChange={(e) => SetBienSo(e.target.value)} required />
+            </div>
 
-      <div>
-        <label htmlFor="GiayDangKyXeSo">Số Giấy Đăng Ký Xe</label>
-        <input id="GiayDangKyXeSo" type="text" value={GiayDangKyXeSo} onChange={(e) => SetGiayDangKyXeSo(e.target.value)} required />
-      </div>
-      <div>
-        <label htmlFor="CDaiThungChua">Chiều Dài Thùng (m)</label>
-        <input id="CDaiThungChua" type="number" value={CDaiThungChua} onChange={(e) => SetCDaiThungChua(e.target.value)} required />
-      </div>
-      <div>
-        <label htmlFor="CRongThungChua">Chiều Rộng Thùng (m)</label>
-        <input id="CRongThungChua" type="number" value={CRongThungChua} onChange={(e) => SetCRongThungChua(e.target.value)} required />
-      </div>
-      <div>
-        <label htmlFor="CCaoThungChua">Chiều Cao Thùng (m)</label>
-        <input id="CCaoThungChua" type="number" value={CCaoThungChua} onChange={(e) => SetCCaoThungChua(e.target.value)} required />
-      </div>
+            <div className="mb-3">
+              <label htmlFor="Loai" className="form-label">Loại phương tiện</label>
+              <input id="Loai" type="text" className="form-control" value={Loai} onChange={(e) => SetLoai(e.target.value)} placeholder="VD: Xe tải 5 tấn, Container..." required />
+            </div>
 
-      {/* --- THAY ĐỔI: Input thành Select cho Vị Trí --- */}
-      <div>
-        <label htmlFor="ViTri">Vị Trí Hiện Tại (Kho Bãi)</label>
-        <select 
-          id="ViTri" 
-          value={IdViTriHienTai} 
-          onChange={(e) => setIdViTriHienTai(e.target.value)} 
-          required
-          disabled={loadingKhoBai} // Vô hiệu hóa khi đang tải
-        >
-          <option value="" disabled>
-            {loadingKhoBai ? "Đang tải kho bãi..." : "-- Chọn kho bãi --"}
-          </option>
-          {KhoBaiList.map((kho) => (
-            <option key={kho.IdKhoBai} value={kho.IdKhoBai}> {/* <-- Gửi ID (số) */}
-              {kho.TenKhoBai} ({kho.DiaChi})
-            </option>
-          ))}
-        </select>
+            <div className="row mb-3">
+              <div className="col-md-6">
+                <label htmlFor="TrongTai" className="form-label">Trọng Tải Tối Đa (kg)</label>
+                <input id="TrongTai" type="number" className="form-control" value={TrongTai} onChange={(e) => SetTrongTai(e.target.value)} required />
+              </div>
+              <div className="col-md-6">
+                <label htmlFor="TaiTrong" className="form-label">Tải Trọng Hiện Tại (kg)</label>
+                <input id="TaiTrong" type="number" className="form-control" value={TaiTrong} onChange={(e) => SetTaiTrong(e.target.value)} required />
+              </div>
+            </div>
+
+            <div className="mb-3">
+              <label htmlFor="TrangThai" className="form-label">Trạng Thái</label>
+              <select id="TrangThai" className="form-select" value={TrangThai} onChange={(e) => SetTrangThai(e.target.value)} required>
+                <option value="SanSang">Sẵn sàng (Đang rảnh)</option>
+                <option value="DangChay">Đang chạy (Đang vận chuyển)</option>
+                <option value="BaoTri">Đang bảo trì</option>
+                <option value="KhongHoatDong">Không hoạt động</option>
+              </select>
+            </div>
+
+            <div className="mb-3">
+              <label htmlFor="GiayDangKyXeSo" className="form-label">Số Giấy Đăng Ký Xe</label>
+              <input id="GiayDangKyXeSo" type="text" className="form-control" value={GiayDangKyXeSo} onChange={(e) => SetGiayDangKyXeSo(e.target.value)} required />
+            </div>
+
+            <h5 className="mt-4">Kích thước thùng chứa</h5>
+            <div className="row mb-3">
+              <div className="col-md-4">
+                <label htmlFor="CDaiThungChua" className="form-label">Chiều Dài (m)</label>
+                <input id="CDaiThungChua" type="number" step="0.01" className="form-control" value={CDaiThungChua} onChange={(e) => SetCDaiThungChua(e.target.value)} required />
+              </div>
+              <div className="col-md-4">
+                <label htmlFor="CRongThungChua" className="form-label">Chiều Rộng (m)</label>
+                <input id="CRongThungChua" type="number" step="0.01" className="form-control" value={CRongThungChua} onChange={(e) => SetCRongThungChua(e.target.value)} required />
+              </div>
+              <div className="col-md-4">
+                <label htmlFor="CCaoThungChua" className="form-label">Chiều Cao (m)</label>
+                <input id="CCaoThungChua" type="number" step="0.01" className="form-control" value={CCaoThungChua} onChange={(e) => SetCCaoThungChua(e.target.value)} required />
+              </div>
+            </div>
+
+            <div className="mb-3">
+              <label htmlFor="ViTri" className="form-label">Vị Trí Hiện Tại (Kho Bãi)</label>
+              <select id="ViTri" className="form-select" value={IdViTriHienTai} onChange={(e) => setIdViTriHienTai(e.target.value)} required disabled={loadingKhoBai}>
+                <option value="">{loadingKhoBai ? "Đang tải kho bãi..." : "-- Chọn kho bãi --"}</option>
+                {KhoBaiList.map((kho) => (
+                  // 3. SỬA LỖI HIỂN THỊ:
+                  <option key={kho.IdKhoBai} value={kho.IdKhoBai}>{kho.TenKhoBai} ({kho.DiaChi})</option>
+                ))}
+              </select>
+            </div>
+
+            <button type="submit" className="btn btn-primary" disabled={loadingKhoBai}>Lưu phương tiện</button>
+            {error && <p className="text-danger mt-2">{error}</p>}
+          </form>
+        </div>
+
+        {/* --- Sticky Summary Panel bên phải (Giảm độ rộng) --- */}
+        <div className="col-md-5">
+          <div className="border rounded p-3 bg-white" style={{ height: "90vh", overflowY: "auto", position: "sticky", top: "20px" }}>
+            <h5>Danh sách phương tiện</h5>
+            {loadingPT ? <p>Đang tải...</p> : (
+              <ul className="list-group">
+                {PhuongTienList.map(pt => (
+                  // 4. SỬA LỖI KEY:
+                  <li key={pt.IdPhuongTien} className="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                      <strong>{pt.BienSo}</strong> ({pt.Loai})
+                      <br/>
+                      <small>Trạng thái: {pt.TrangThai}</small>
+                    </div>
+                    <button className="btn btn-sm btn-danger" onClick={() => handleDelete(pt.IdPhuongTien)}>Xóa</button>
+                  </li>
+                ))}
+                {PhuongTienList.length === 0 && <li className="list-group-item">Không có phương tiện nào</li>}
+              </ul>
+            )}
+          </div>
+        </div>
       </div>
-      
-      <button type="submit" disabled={loadingKhoBai}> Lưu phương tiện </button>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-    </form>
+    </div>
   );
 }
 

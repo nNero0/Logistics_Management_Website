@@ -30,6 +30,17 @@ const KhoBaiControllers = {
       res.status(500).json({ message: "Đã có lỗi xảy ra ở máy chủ", error: error.message });
     }
   },
+   async deleteKhoBai(req, res) {
+    try {
+      const id = req.params.id;
+      const kb = await KhoBai.findByPk(id);
+      if (!kb) return res.status(404).json({ message: "kb không tồn tại" });
+      await kb.destroy();
+      res.status(200).json({ message: "kb đã bị xóa" });
+    } catch (err) {
+      res.status(500).json({ message: "Lỗi server", error: err.message });
+    }
+  }
 };
 
 export default KhoBaiControllers;

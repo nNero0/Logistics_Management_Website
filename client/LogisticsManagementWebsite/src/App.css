@@ -1,9 +1,28 @@
+body {
+  margin: 0;
+  padding: 0;
+}
+body, html, #root {
+  margin: 0;
+  height: 100%;
+  width:100%;
+}
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+
   text-align: center;
 }
+
+* {
+  overflow: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}
+
+
 
 .logo {
   height: 6em;
@@ -39,4 +58,39 @@
 
 .read-the-docs {
   color: #888;
+}
+
+/*
+ * Mẹo CSS để ép hiển thị biểu tượng lịch
+ * cho input[type="date"]
+ */
+
+input[type="date"] {
+  position: relative;
+  /* Thêm một chút padding bên phải để icon không đè lên chữ */
+  padding-right: 2.5rem; 
+
+  /* 1. Ẩn biểu tượng lịch gốc của trình duyệt (nếu có) */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* 2. Dùng '::after' để vẽ biểu tượng giả */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  /* Đây là một SVG (hình ảnh) của một cái lịch.
+    Nó được "URL-encode" để dùng trong CSS.
+  */
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar" viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/></svg>');
+  
+  /* Căn chỉnh vị trí */
+  background-repeat: no-repeat;
+  background-position: center;
+  
+  /* Kích thước */
+  width: 1rem;
+  height: 1rem;
+  
+  /* Quan trọng: Cho phép bấm vào */
+  cursor: pointer;
 }

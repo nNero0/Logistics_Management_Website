@@ -103,7 +103,7 @@ function GanDonPage() {
       try {
         // Query cho Đơn Vận
         const DonVanQuery = new URLSearchParams({
-          trangThai: "Chờ điều phối",
+          trangThai: "ChoXuLy",
           khoBatDauId: IdKhoBaiBatDau,
           khoKetThucId: IdKhoBaiKetThuc 
         }).toString();

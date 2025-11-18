@@ -1,96 +1,70 @@
-import { useState } from "react";
-import React from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import React from "react"; // Xóa useState và Link vì không dùng ở đây
 
+// CSS của bạn
 import "./App.css";
 
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
-
-import PhuongTienForm from "./components/PhuongTienForm";
+// Các trang/components chính
 import LoginPage from "./components/LoginPage";
-import ProtectedRoute from "./components/ProtectedRoutes";
 import RegisterPage from "./components/RegisterPage";
-import DonVanForm from "./components/DonVanForm";
-import KhachHangForm from "./components/KhangHangForm";
-import TaiXeForm from "./components/TaiXeForm";
-import KhoBaiForm from "./components/KhoBaiForm";
-import LoTrinhForm from "./components/LoTrinhForm";
-import HangHoaForm from "./components/HangHoaForm";
+import ProtectedRoute from "./components/ProtectedRoutes";
+
+// 1. Import Layout mới
+import MainLayout from "./components/MainLayout"; 
+
+// 2. Import các trang con mới
+import DashboardPage from "./components/DashboardPage"; 
+import DuLieuGocPage from "./components/DuLieuGocPage"; 
+
+// 3. Vẫn giữ layout điều phối
+import DieuPhoiLayout from "./components/DieuPhoiLayout";
 import GanDonPage from "./components/GanDonPage";
 import ChuyenDangChay from "./components/ChuyenDangChay";
-import DieuPhoiLayout from "./components/DieuPhoiLayout";
+import InvoicePage from "./components/InvoicePage";
 
+// 4. Các form này sẽ được gọi bên trong 'DuLieuGocPage',
+//    nên không cần import ở đây nữa
+// import PhuongTienForm from "./components/PhuongTienForm";
+// import TaiXeForm from "./components/TaiXeForm";
+// ... (Không cần import các form khác ở đây)
 
-const DashBoard = () => (
-  <div>
-    <h2>WELCOME </h2>
+// === XÓA TOÀN BỘ component 'DashBoard' (thanh nav cũ) Ở ĐÂY ===
 
-    <header style={HeaderStyle}>
-      <h2> My Logistic Website </h2>
-      <nav>
-        <Link to="/" style={{ marginRight: "15px" }}>
-          Dashboard
-        </Link>
-        <Link to="/taixe/createtaixe" style={{ marginRight: "15px" }}>
-          Tài xế
-        </Link>
-        <Link to="/phuongtien/new" style={{ marginRight: "15px" }}>
-          Phương tiện
-        </Link>
-        <Link to="/khobai/createkhobai" style={{ marginRight: "15px" }}>
-          Kho Bãi
-        </Link>
-        <Link to="/khachhang/createkhachhang" style={{ marginRight: "15px" }}>
-          khách hàng
-        </Link>
-        <Link to="/donvan/createdonvan" style={{ marginRight: "15px" }}>
-          đơn vận
-        </Link>
-
-        <Link to="/lotrinh/createlotrinh" style={{ marginRight: "15px" }}>
-          Lộ trình
-        </Link>
-        <Link to="/donvan/createdonvan" style={{ marginRight: "15px" }}>
-          đơn vận
-        </Link>
-        <Link to="/hanghoa/createhanghoa" style={{ marginRight: "15px" }}>
-          hàng hóa
-        </Link>
-        <Link to="/dieuphoi" style={{ marginRight: "15px" }}>
-          Điều phối
-        </Link>
-      </nav>
-    </header>
-    <hr />
-  </div>
-);
-const HeaderStyle = {
-  padding: "10px",
-  backgroundColor: "#f0f0f0",
-  borderBottom: "1px solid #ccc",
-};
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Các route công khai (Login, Register) */}
         <Route path="/auth/login" element={<LoginPage />} />
         <Route path="/auth/register" element={<RegisterPage />} />
+
+        {/* --- Các route được bảo vệ --- */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/" element={<DashBoard />} />
-          <Route path="/phuongtien/new" element={<PhuongTienForm />} />
-          <Route path="/taixe/createtaixe" element={<TaiXeForm />} />
-          <Route path="/khachhang/createkhachhang" element={<KhachHangForm />} />
-          <Route path="/khobai/createkhobai" element={<KhoBaiForm />} />
-          <Route path="/lotrinh/createlotrinh" element={<LoTrinhForm />} />
-          <Route path="/donvan/createdonvan" element={<DonVanForm />} />
-          <Route path="/hanghoa/createhanghoa" element={<HangHoaForm />} />
-          <Route path="/dieuphoi" element={<DieuPhoiLayout />} >
+          
+          {/* Sử dụng MainLayout làm layout cha.
+            Tất cả các route con bên trong sẽ được render 
+            bên trong <Outlet /> của MainLayout.
+          */}
+          <Route element={<MainLayout />}>
+            
+            {/* Trang Dashboard thực sự (trang chủ) */}
+            <Route index element={<DashboardPage />} /> 
+            {/* 'index' có nghĩa là nó khớp với route cha ('/') */}
+            
+            {/* Trang gom các Form bằng Tab */}
+            <Route path="/du-lieu-goc" element={<DuLieuGocPage />} />
 
-            <Route index element={<GanDonPage />} /> 
+            {/* Trang Điều phối (cấu trúc này của bạn đã tốt) */}
+            <Route path="/dieuphoi" element={<DieuPhoiLayout />}>
+              <Route index element={<GanDonPage />} />
+              <Route path="phancong" element={<ChuyenDangChay />} />
+              <Route path="invoice" element={<InvoicePage />} />
+            </Route>
+      
 
+          </Route>{/* Kết thúc MainLayout */}
 
-            <Route path="phancong" element={<ChuyenDangChay />} />
-          </Route>
-        </Route>  
+        </Route>{/* Kết thúc ProtectedRoute */}
       </Routes>
     </BrowserRouter>
   );

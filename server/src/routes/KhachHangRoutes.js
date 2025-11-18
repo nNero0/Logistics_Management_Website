@@ -9,5 +9,6 @@ const router = express.Router();
 
 router.post('/createkhachhang' ,protect, KhachHangControllers.CreateKhachHang);
 router.get('/' ,protect, KhachHangControllers.getAllKhachHang);
+router.delete('/delete/:id' ,protect, KhachHangControllers.deleteKhachHang);
 export default router;
 
