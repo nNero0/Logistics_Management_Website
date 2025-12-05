@@ -64,7 +64,6 @@ function KhachHangForm() {
     }
   };
 
-  // --- Delete KhachHang ---
   const handleDelete = async (id) => {
     if (!window.confirm("Bạn có chắc muốn xóa khách hàng này?")) return;
     try {
