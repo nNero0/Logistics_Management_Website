@@ -1,11 +1,10 @@
-// Các hàm liên quan tới tạo ra object đơn vận
-import { DonVan, KhoBai, KhachHang } from "../models/index.js";
+import { DonVan, KhoBai, KhachHang,HangHoa } from "../models/index.js";
 
 const DonVanController = {
   async CreateDonVan(req, res) {
     try {
       console.log(req.body);
-      const { IdKhachHang, ETA, IdKhoBaiBatDau, IdKhoBaiKetThuc ,TrangThai} = req.body;
+      const { IdKhachHang, ETA, IdKhoBaiBatDau, IdKhoBaiKetThuc ,TrangThai,YeuCauContainer} = req.body;
 
       if (!IdKhachHang || !IdKhoBaiBatDau || !IdKhoBaiKetThuc) {
         return res.status(400).json({
@@ -17,7 +16,8 @@ const DonVanController = {
         IdKhoBaiKetThuc,
         IdKhachHang,
         ETA,
-        TrangThai
+        TrangThai,
+        YeuCauContainer,
       });
       res.status(201).json(newDonVan);
     } catch (error) {
@@ -26,30 +26,24 @@ const DonVanController = {
     }
   },
 
-  // hêm hàm này hoặc cập nhật hàm cũ
-  async getAllDonVan(req, res) {
+    async getAllDonVan(req, res) {
     try {
-      // 1. Đọc các tham số query
-      const { trangThai, khoBatDauId, khoKetThucId } = req.query;
-      // 2. Xây dựng mệnh đề 'where' động
-      const whereClause = {};
+            const { trangThai, khoBatDauId, khoKetThucId } = req.query;
+            const whereClause = {};
       if (trangThai) {
         whereClause.TrangThai = trangThai;
       }
       if (khoBatDauId) {
-        whereClause.IdKhoBaiBatDau = khoBatDauId; // Dùng tên cột trong Model
-      }
+        whereClause.IdKhoBaiBatDau = khoBatDauId;       }
       if (khoKetThucId) {
-        whereClause.IdKhoBaiKetThuc = khoKetThucId; // Dùng tên cột trong Model
-      }
+        whereClause.IdKhoBaiKetThuc = khoKetThucId;       }
 
-      // 3. Tìm tất cả với 'where' và 'include'
-      const DonVanList = await DonVan.findAll({
+            const DonVanList = await DonVan.findAll({
         where: whereClause,
         include: [
-          { model: KhachHang, as: "khachHang" }, // Dùng 'as' bạn đã định nghĩa
-          { model: KhoBai, as: "DVkhoBatDau" }, // Dùng 'as' bạn đã định nghĩa
-          { model: KhoBai, as: "DVkhoKetThuc" }, // Dùng 'as' bạn đã định nghĩa
+          { model: KhachHang, as: "khachHang" },           { model: KhoBai, as: "DVkhoBatDau" },           { model: KhoBai, as: "DVkhoKetThuc" },           { 
+            model: HangHoa, 
+            as: 'hangHoas',                     }
         ],
       });
 
@@ -64,24 +58,19 @@ const DonVanController = {
   try {
     const { id } = req.params;
 
-    // SỬA Ở ĐÂY: Dùng "donVan" (chữ thường) cho biến
-    const donVan = await DonVan.findByPk(id); 
-    //   ^ (chữ thường)   ^ (chữ hoa - Model)
-
-    // SỬA Ở ĐÂY:
-    if (!donVan) { 
+        const donVan = await DonVan.findByPk(id); 
+    
+        if (!donVan) { 
       return res.status(404).json({ message: "Không tìm thấy đơn vận" });
     }
 
-    // SỬA Ở ĐÂY:
-    await donVan.destroy(); 
+        await donVan.destroy(); 
 
     res.status(200).json({ message: "Đã xóa đơn vận thành công" });
   } catch (error) {
     console.error("Lỗi khi xóa đơn vận:", error);
     
-    // Thêm logic bắt lỗi khóa ngoại (nếu bạn muốn)
-    if (error.name === 'SequelizeForeignKeyConstraintError') {
+        if (error.name === 'SequelizeForeignKeyConstraintError') {
       return res.status(400).json({ 
         message: "Xóa thất bại. Đơn vận này đang được liên kết với Hàng Hóa hoặc Hóa Đơn." 
       });

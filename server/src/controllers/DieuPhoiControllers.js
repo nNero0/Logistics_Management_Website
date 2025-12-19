@@ -42,70 +42,88 @@ const DieuPhoiController = {
   },
 
   async hoanThanhChuyen(req, res) {
-    const t = await sequelize.startUnmanagedTransaction();
+   
     try {
-      const { taiXeId, phuongTienId } = req.body;
-      if (!taiXeId || !phuongTienId) {
-        return res.status(400).json({ message: "Thiếu taiXeId hoặc phuongTienId." });
-      }
+      await sequelize.transaction(async (t) => {
+        const { taiXeId, phuongTienId } = req.body;
 
-      const activeAssignments = await PhanCongDonVan.findAll({
-        where: {
-          IdTaiXe: taiXeId,
-          IdPhuongTien: phuongTienId,
-          TrangThai: "DangChay",
-        },
-        include: [
-          {
-            model: DonVan,
-            attributes: ["IdDonVan", "IdKhoBaiKetThuc"],
-            required: true, 
+        if (!taiXeId || !phuongTienId) {
+          throw new Error("Thiếu taiXeId hoặc phuongTienId.");
+        }
+
+
+        const activeAssignments = await PhanCongDonVan.findAll({
+          where: {
+            IdTaiXe: taiXeId,
+            IdPhuongTien: phuongTienId,
+            TrangThai: "DangChay",
           },
-        ],
-        transaction: t,
+          include: [
+            {
+              model: DonVan,
+  
+              attributes: ["IdDonVan", "IdKhoBaiKetThuc"],
+              required: true,
+            },
+          ],
+          transaction: t,
+        });
+
+        if (!activeAssignments || activeAssignments.length === 0) {
+          throw new Error("Không tìm thấy chuyến đi nào đang chạy cho tổ đội này.");
+        }
+
+   
+        const firstOrder =
+          activeAssignments[0].DonVan || activeAssignments[0].donVan || activeAssignments[0].dataValues.DonVan;
+
+        if (!firstOrder) {
+          throw new Error("Lỗi dữ liệu: Không lấy được thông tin Đơn Vận từ Phân Công.");
+        }
+
+        const finalDestinationId = firstOrder.IdKhoBaiKetThuc;
+
+        if (!finalDestinationId) {
+          throw new Error("Lỗi dữ liệu: Đơn vận thiếu thông tin Kho Kết Thúc.");
+        }
+
+        const allPhanCongIds = activeAssignments.map((a) => a.IdPhanCong);
+        const allDonVanIds = activeAssignments.map((a) => (a.DonVan || a.donVan).IdDonVan);
+
+
+        await PhanCongDonVan.update(
+          { TrangThai: "HoanThanh", NgayKetThuc: new Date() },
+          { where: { IdPhanCong: allPhanCongIds }, transaction: t }
+        );
+
+  
+        await DonVan.update(
+          { TrangThai: "HoanThanh" },
+          { where: { IdDonVan: allDonVanIds }, transaction: t }
+        );
+
+
+        await TaiXe.update(
+          {
+            TrangThaiNghiepVu: "SanSang",
+            IdKhoBai: finalDestinationId, 
+          },
+          { where: { IdTaiXe: taiXeId }, transaction: t }
+        );
+
+        await PhuongTien.update(
+          {
+            TrangThai: "SanSang",
+            IdKhoBai: finalDestinationId, 
+          },
+          { where: { IdPhuongTien: phuongTienId }, transaction: t }
+        );
       });
-      console.log(activeAssignments);
-      if (activeAssignments.length === 0) {
-        throw new Error("Không tìm thấy chuyến đi nào đang chạy cho tổ đội này.");
-      }
 
-      const finalDestinationId = activeAssignments[0].donVan.IdKhoBaiKetThuc;
-      if (!finalDestinationId) {
-        throw new Error("Lỗi: Đơn vận được gán thiếu thông tin Kho Kết Thúc.");
-      }
-
-      const allPhanCongIds = activeAssignments.map((a) => a.IdPhanCong);
-      const allDonVanIds = activeAssignments.map((a) => a.donVan.IdDonVan);
-
-      await PhanCongDonVan.update(
-        { TrangThai: "HoanThanh", NgayKetThuc: new Date() },
-        { where: { IdPhanCong: allPhanCongIds }, transaction: t }
-      );
-
-      await DonVan.update({ TrangThai: "HoanThanh" }, { where: { IdDonVan: allDonVanIds }, transaction: t });
-
-      await TaiXe.update(
-        {
-          TrangThaiNghiepVu: "SanSang",
-          IdViTriHienTai: finalDestinationId,
-        },
-        { where: { IdTaiXe: taiXeId }, transaction: t }
-      );
-
-      await PhuongTien.update(
-        {
-          TrangThai: "SanSang",
-          IdViTriHienTai: finalDestinationId,
-        },
-        { where: { IdPhuongTien: phuongTienId }, transaction: t }
-      );
-
-      await t.commit();
-      res.status(200).json({ message: "Hoàn thành chuyến đi thành công." });
+      return res.status(200).json({ message: "Hoàn thành chuyến đi và cập nhật vị trí thành công." });
     } catch (error) {
-      await t.rollback();
       console.error("Lỗi khi hoàn thành chuyến:", error);
-      res.status(500).json({ message: "Lỗi server", error: error.message });
+      return res.status(500).json({ message: error.message || "Lỗi server" });
     }
   },
   async getAllPhanCong(req, res) {

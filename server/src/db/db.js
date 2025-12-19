@@ -6,7 +6,7 @@ import { MySqlDialect } from "@sequelize/mysql";
 
 const sequelize = new Sequelize({
   dialect: MySqlDialect,
-  database: process.env.DB_NAME || "logistics",
+  database: process.env.DB_NAME || "finalschema",
   user: process.env.DB_USER || "root",
   password: process.env.DB_PASSWORD || "1234",
   host: process.env.DB_HOST || "localhost",
@@ -14,9 +14,3 @@ const sequelize = new Sequelize({
 });
 
 export default sequelize;
-// const mysql2 =  await mysql.createConnection({
-//     host:'localhost',
-//     user:'root',
-//     database:'logistics',
-// });
-// mysql2 for maybe complex ?

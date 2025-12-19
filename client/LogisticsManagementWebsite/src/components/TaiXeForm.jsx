@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 
-// Helper để lấy ngày hôm nay cho input date
 const getTodayString = () => {
-  return new Date().toISOString().split('T')[0];
+  return new Date().toISOString().split("T")[0];
 };
 
 function TaiXeForm() {
@@ -11,13 +10,11 @@ function TaiXeForm() {
   const [Email, setEmail] = useState("");
   const [BangLai, setBangLai] = useState("");
   const [TrangThaiNghiepVu, setTrangThaiNghiepVu] = useState("SanSang");
-  
-  // --- STATE BỊ THIẾU ---
+
   const [LyDoChiTiet, setLyDoChiTiet] = useState("");
   const [CCCD, setCCCD] = useState("");
-  const [NgayCapCCCD, setNgayCapCCCD] = useState(getTodayString()); // Đặt ngày mặc định
+  const [NgayCapCCCD, setNgayCapCCCD] = useState(getTodayString());
   const [NoiCapCCCD, setNoiCapCCCD] = useState("");
-  // -----------------------
 
   const [IdViTriHienTai, setIdViTriHienTai] = useState("");
 
@@ -30,7 +27,6 @@ function TaiXeForm() {
   const apiURL = import.meta.env.VITE_APP_API;
   const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
 
-  // --- Load kho bãi ---
   useEffect(() => {
     const fetchKhoBai = async () => {
       try {
@@ -46,7 +42,6 @@ function TaiXeForm() {
     fetchKhoBai();
   }, [apiURL, token]);
 
-  // --- Load danh sách tài xế ---
   const fetchTaiXe = async () => {
     setLoading(true);
     try {
@@ -65,7 +60,6 @@ function TaiXeForm() {
     fetchTaiXe();
   }, [apiURL, token]);
 
-  // --- Submit form (ĐÃ CẬP NHẬT) ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -81,7 +75,7 @@ function TaiXeForm() {
       Email,
       BangLai,
       TrangThaiNghiepVu,
- 
+
       LyDoChiTiet: TrangThaiNghiepVu === "SanSang" ? null : LyDoChiTiet,
       CCCD,
       NgayCapCCCD,
@@ -99,27 +93,26 @@ function TaiXeForm() {
         const data = await res.json();
         throw new Error(data.message || "Tạo tài xế thất bại");
       }
-      alert("Tạo tài xế thành công!");
-      
-      // Reset form (ĐÃ CẬP NHẬT)
-      setHoten(""); 
-      setSdt(""); 
-      setEmail(""); 
-      setBangLai(""); 
+
+      fetchTaiXe();
+
+      setHoten("");
+      setSdt("");
+      setEmail("");
+      setBangLai("");
       setTrangThaiNghiepVu("SanSang");
-      setLyDoChiTiet(""); 
-      setCCCD(""); 
-      setNgayCapCCCD(getTodayString()); 
-      setNoiCapCCCD(""); 
+      setLyDoChiTiet("");
+      setCCCD("");
+      setNgayCapCCCD(getTodayString());
+      setNoiCapCCCD("");
       setIdViTriHienTai("");
-      
-      fetchTaiXe(); // Tải lại danh sách
+
+      fetchTaiXe();
     } catch (err) {
       setError(err.message);
     }
   };
 
-  // --- Delete tài xế ---
   const handleDelete = async (id) => {
     if (!window.confirm("Bạn có chắc muốn xóa tài xế này?")) return;
     try {
@@ -134,85 +127,113 @@ function TaiXeForm() {
     }
   };
 
-  // --- Filtered list theo search ---
-  const filteredList = TaiXeList.filter((tx) =>
-    (tx.Hoten || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (tx.Sdt || "").includes(searchTerm) ||
-    (tx.Email || "").toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredList = TaiXeList.filter(
+    (tx) =>
+      (tx.Hoten || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (tx.Sdt || "").includes(searchTerm) ||
+      (tx.Email || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <div className="container-fluid ">
       <div className="row">
-        {/* Form trái */}
-        <div className="col-md-7"> {/* Tăng độ rộng form */}
+        <div className="col-md-7">
           <form onSubmit={handleSubmit} className="p-3 border rounded bg-light mb-3">
             <h3 className="mb-4">Thêm Tài Xế Mới</h3>
-            
+
             <div className="row mb-3">
               <div className="col-md-6">
                 <label>Họ Tên</label>
-                <input type="text" className="form-control" value={Hoten} onChange={(e) => setHoten(e.target.value)} required />
+                <input
+                  type="text"
+                  className="form-control"
+                  value={Hoten}
+                  onChange={(e) => setHoten(e.target.value)}
+                  required
+                />
               </div>
               <div className="col-md-6">
                 <label>Bằng Lái (VD: B2, C)</label>
-                <input type="text" className="form-control" value={BangLai} onChange={(e) => setBangLai(e.target.value)} required />
-              </div>
-            </div>
-            
-            <div className="row mb-3">
-              <div className="col-md-6">
-                <label>Số điện thoại</label>
-                <input type="text" className="form-control" value={Sdt} onChange={(e) => setSdt(e.target.value)} required />
-              </div>
-              <div className="col-md-6">
-                <label>Email</label>
-                <input type="email" className="form-control" value={Email} onChange={(e) => setEmail(e.target.value)} required />
+                <input
+                  type="text"
+                  className="form-control"
+                  value={BangLai}
+                  onChange={(e) => setBangLai(e.target.value)}
+                  required
+                />
               </div>
             </div>
 
-            {/* --- THÊM THÔNG TIN CCCD BỊ THIẾU --- */}
+            <div className="row mb-3">
+              <div className="col-md-6">
+                <label>Số điện thoại</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  onChange={(e) => {
+                    setSdt(e.target.value.replace(/\D/g, ""));
+                  }}
+                  className="form-control"
+                  value={Sdt}
+                  required
+                />
+              </div>
+              <div className="col-md-6">
+                <label>Email</label>
+                <input
+                  type="email"
+                  className="form-control"
+                  value={Email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
             <h5 className="mt-4">Thông tin CCCD</h5>
             <div className="row mb-3">
               <div className="col-md-4">
                 <label>Số CCCD</label>
-                <input 
-                  type="text" 
-                  className="form-control" 
-                  value={CCCD} 
-                  onChange={(e) => setCCCD(e.target.value)} 
-                  required 
+                <input
+                  type="text"
+                  className="form-control"
+                  value={CCCD}
+                  onChange={(e) => setCCCD(e.target.value)}
+                  required
                   maxLength={12}
                 />
               </div>
               <div className="col-md-4">
                 <label>Ngày Cấp CCCD</label>
-                <input 
-                  type="date" 
-                  className="form-control" 
-                  value={NgayCapCCCD} 
-                  onChange={(e) => setNgayCapCCCD(e.target.value)} 
-                  required 
+                <input
+                  type="date"
+                  className="form-control"
+                  value={NgayCapCCCD}
+                  onChange={(e) => setNgayCapCCCD(e.target.value)}
+                  required
                 />
               </div>
               <div className="col-md-4">
                 <label>Nơi Cấp CCCD</label>
-                <input 
-                  type="text" 
-                  className="form-control" 
-                  value={NoiCapCCCD} 
-                  onChange={(e) => setNoiCapCCCD(e.target.value)} 
-                  required 
+                <input
+                  type="text"
+                  className="form-control"
+                  value={NoiCapCCCD}
+                  onChange={(e) => setNoiCapCCCD(e.target.value)}
+                  required
                 />
               </div>
             </div>
-            {/* ------------------------------------ */}
 
             <h5 className="mt-4">Thông tin nghiệp vụ</h5>
             <div className="row mb-3">
               <div className="col-md-6">
                 <label>Trạng Thái</label>
-                <select className="form-select" value={TrangThaiNghiepVu} onChange={(e) => setTrangThaiNghiepVu(e.target.value)}>
+                <select
+                  className="form-select"
+                  value={TrangThaiNghiepVu}
+                  onChange={(e) => setTrangThaiNghiepVu(e.target.value)}
+                >
                   <option value="SanSang">Sẵn sàng</option>
                   <option value="DangChay">Đang chạy</option>
                   <option value="NghiPhep">Nghỉ phép</option>
@@ -221,37 +242,43 @@ function TaiXeForm() {
               </div>
               <div className="col-md-6">
                 <label>Vị trí hiện tại (Kho bãi)</label>
-                <select className="form-select" value={IdViTriHienTai} onChange={(e) => setIdViTriHienTai(e.target.value)} required>
+                <select
+                  className="form-select"
+                  value={IdViTriHienTai}
+                  onChange={(e) => setIdViTriHienTai(e.target.value)}
+                  required
+                >
                   <option value="">-- Chọn kho bãi --</option>
-                  {KhoBaiList.map(kho => (
-                    <option key={kho.IdKhoBai} value={kho.IdKhoBai}>{kho.TenKhoBai} ({kho.DiaChi})</option>
+                  {KhoBaiList.map((kho) => (
+                    <option key={kho.IdKhoBai} value={kho.IdKhoBai}>
+                      {kho.TenKhoBai} ({kho.DiaChi})
+                    </option>
                   ))}
                 </select>
               </div>
             </div>
 
-            {/* --- THÊM INPUT LYDOCHITIET --- */}
             {TrangThaiNghiepVu !== "SanSang" && (
               <div className="mb-3">
                 <label>Lý Do Chi Tiết (Nghỉ phép, Xe hỏng,...)</label>
-                <input 
-                  type="text" 
-                  className="form-control" 
-                  value={LyDoChiTiet} 
-                  onChange={(e) => setLyDoChiTiet(e.target.value)} 
+                <input
+                  type="text"
+                  className="form-control"
+                  value={LyDoChiTiet}
+                  onChange={(e) => setLyDoChiTiet(e.target.value)}
                   placeholder="Nhập lý do cho trạng thái"
                 />
               </div>
             )}
-            {/* -------------------------------- */}
 
-            <button type="submit" className="btn btn-primary">Lưu Tài Xế</button>
+            <button type="submit" className="btn btn-primary">
+              Lưu Tài Xế
+            </button>
             {error && <p className="text-danger mt-2">{error}</p>}
           </form>
         </div>
 
-        {/* Sticky summary phải */}
-        <div className="col-md-5"> {/* Giảm độ rộng cột danh sách */}
+        <div className="col-md-5">
           <div className="sticky-top p-3 border bg-light" style={{ top: "20px", maxHeight: "90vh", overflowY: "auto" }}>
             <h5>📋 Danh sách Tài Xế</h5>
 
@@ -270,24 +297,27 @@ function TaiXeForm() {
             ) : filteredList.length === 0 ? (
               <p>Không có tài xế nào</p>
             ) : (
-              // Bảng (giữ nguyên)
               <table className="table table-striped table-sm">
                 <thead>
                   <tr>
                     <th>Họ Tên</th>
                     <th>SDT</th>
                     <th>Trạng Thái</th>
+                    <th>Vị trí hiện tại</th>
                     <th>Hành Động</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredList.map(tx => (
+                  {filteredList.map((tx) => (
                     <tr key={tx.IdTaiXe}>
                       <td>{tx.Hoten}</td>
                       <td>{tx.Sdt}</td>
                       <td>{tx.TrangThaiNghiepVu}</td>
+                      <td>{tx.viTriHienTai?.DiaChi}</td>
                       <td>
-                        <button className="btn btn-sm btn-danger" onClick={() => handleDelete(tx.IdTaiXe)}>Xóa</button>
+                        <button className="btn btn-sm btn-danger" onClick={() => handleDelete(tx.IdTaiXe)}>
+                          Xóa
+                        </button>
                       </td>
                     </tr>
                   ))}

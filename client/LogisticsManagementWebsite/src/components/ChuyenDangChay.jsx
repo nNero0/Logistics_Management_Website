@@ -60,7 +60,7 @@ function ChuyenDangChay() {
         const data = await response.json();
         throw new Error(data.message || "Hoàn thành chuyến thất bại");
       }
-      alert("Hoàn thành chuyến thành công!");
+
       fetchChuyenDangChay();
     } catch (err) {
       setError(err.message);

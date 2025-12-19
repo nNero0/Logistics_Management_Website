@@ -39,6 +39,10 @@ const DonVan = sequelize.define(
       type: DataTypes.STRING(255),
       allowNull: false,
     },
+    YeuCauContainer: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+    },
   },
   { tableName: "DonVan", createdAt: "NgayLapDon", updatedAt: false }
 );

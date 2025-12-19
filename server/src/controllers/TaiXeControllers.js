@@ -17,7 +17,7 @@
 
 // );
 
-import { TaiXe } from "../models/index.js";
+import { TaiXe,KhoBai } from "../models/index.js";
 
 const TaiXeControllers = {
   async CreateTaiXe(req, res) {
@@ -47,24 +47,33 @@ const TaiXeControllers = {
       console.log(error);
     }
   },
-  // Thêm hàm này hoặc cập nhật hàm cũ
-  async getAllTaiXe(req, res) {
+
+ async getAllTaiXe(req, res) {
     try {
-      // 1. Đọc query
+
       const { trangThai, viTriId } = req.query;
 
-      // 2. Xây dựng 'where'
+
       const whereClause = {};
       if (trangThai) {
-        whereClause.TrangThaiNghiepVu = trangThai; // Tên cột trong Model TaiXe
+        whereClause.TrangThaiNghiepVu = trangThai; 
       }
       if (viTriId) {
-        whereClause.idKhobai = viTriId; // Tên cột trong Model TaiXe
+        whereClause.idKhobai = viTriId; 
       }
 
-      // 3. Tìm tất cả
+
       const taiXeList = await TaiXe.findAll({
         where: whereClause,
+
+        include: [
+          {
+            model: KhoBai,      
+            as: 'viTriHienTai',   
+            attributes: ['IdKhoBai','DiaChi'] 
+          }
+        ]
+
       });
 
       res.status(200).json(taiXeList);

@@ -24,15 +24,7 @@ const KhachHangControllers = {
   },
   async getAllKhachHang(req, res) {
     try {
-      const allKhachHang = await KhachHang
-        .findAll
-        //   {
-
-        //   include: [
-        //     { model: DonVan }
-        //   ]
-        // }
-        ();
+      const allKhachHang = await KhachHang.findAll();
 
       res.status(200).json(allKhachHang);
     } catch (error) {

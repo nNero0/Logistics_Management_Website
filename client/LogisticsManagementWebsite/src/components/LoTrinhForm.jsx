@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from "react";
-// import { useNavigate } from "react-router-dom"; // 1. Bỏ useNavigate
 
 function LoTrinhForm() {
-  // const navigate = useNavigate(); // 1. Bỏ navigate
-
-  // --- State cho Form (Giữ nguyên) ---
   const [TenLoTrinh, setTenLoTrinh] = useState("");
   const [TrangThai, setTrangThai] = useState("Sẵn sàng");
   const [ETC, setETC] = useState(0);
@@ -15,16 +11,13 @@ function LoTrinhForm() {
   const [dsTramDung, setDsTramDung] = useState([]);
 
   const [error, setError] = useState(null);
-  const [loadingKhoBai, setLoadingKhoBai] = useState(true); // 2. Đổi tên 'loading'
-
-  // --- 3. STATE MỚI: Cho Panel Danh Sách ---
+  const [loadingKhoBai, setLoadingKhoBai] = useState(true);
   const [loTrinhList, setLoTrinhList] = useState([]);
   const [loadingLoTrinhList, setLoadingLoTrinhList] = useState(true);
 
   const apiURL = import.meta.env.VITE_APP_API;
   const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
 
-  // --- Fetch Kho Bãi (cho Dropdown) ---
   useEffect(() => {
     const fetchKhoBai = async () => {
       try {
@@ -40,17 +33,14 @@ function LoTrinhForm() {
       } catch (error) {
         setError(error.message);
       } finally {
-        setLoadingKhoBai(false); // 2. Sửa tên state
+        setLoadingKhoBai(false);
       }
     };
     fetchKhoBai();
-  }, [apiURL, token]); // Thêm dependencies
-
-  // --- 4. FETCH MỚI: Tải danh sách Lộ Trình (cho Panel) ---
+  }, [apiURL, token]);
   const fetchLoTrinhList = async () => {
     setLoadingLoTrinhList(true);
     try {
-      // Giả sử API GET lộ trình của bạn là /api/lotrinh
       const res = await fetch(`${apiURL}/api/lotrinh`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -64,12 +54,9 @@ function LoTrinhForm() {
     }
   };
 
-  // Tải danh sách lộ trình khi component load
   useEffect(() => {
     fetchLoTrinhList();
-  }, [apiURL, token]); // Thêm dependencies
-
-  // --- Logic Thêm/Xóa/Di chuyển trạm (Giữ nguyên) ---
+  }, [apiURL, token]);
   const handleThemTram = () => {
     if (!selectedKhoId) return alert("Vui lòng chọn một kho bãi để thêm.");
     const daTonTai = dsTramDung.some((tram) => tram.IdKhoBai === parseInt(selectedKhoId));
@@ -94,7 +81,6 @@ function LoTrinhForm() {
     setDsTramDung(newList);
   };
 
-  // --- 5. Cập nhật HandleSubmit ---
   const HandleSubmit = async (event) => {
     event.preventDefault();
     setError(null);
@@ -125,9 +111,6 @@ function LoTrinhForm() {
         throw new Error(data.message || "Tạo lộ trình thất bại");
       }
 
-      // navigate("/createlotrinh"); // Bỏ dòng này
-      
-      // Reset form
       setTenLoTrinh("");
       setTrangThai("Sẵn sàng");
       setETC(0);
@@ -137,43 +120,37 @@ function LoTrinhForm() {
       setError(null);
 
       alert("Tạo lộ trình thành công!");
-      fetchLoTrinhList(); // Tải lại danh sách bên phải
-
+      fetchLoTrinhList();
     } catch (error) {
       setError(error.message);
     }
   };
-  
-  // === 6. HÀM MỚI: Xử lý Xóa ===
+
   const handleDelete = async (id) => {
     if (!window.confirm("Bạn có chắc muốn xóa lộ trình này?")) return;
     try {
-      // Giả sử API Xóa của bạn là /api/lotrinh/delete/:id
       const res = await fetch(`${apiURL}/api/lotrinh/delete/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Xóa thất bại");
-      fetchLoTrinhList(); // Tải lại danh sách
+      fetchLoTrinhList();
     } catch (err) {
       setError(err.message);
     }
   };
 
-
   if (loadingKhoBai) return <p>Loading location data...</p>;
 
   return (
-    // === 7. BỐ CỤC MỚI ===
     <div className="d-flex gap-4">
-      
-      {/* --- Form bên trái --- */}
       <form onSubmit={HandleSubmit} className="p-4 border rounded bg-light flex-grow-1">
         <h3 className="mb-4">Tạo Lộ Trình Chi Tiết</h3>
 
-        {/* Thông tin chung */}
         <div className="mb-3">
-          <label htmlFor="TenLoTrinh" className="form-label">Tên Lộ Trình</label>
+          <label htmlFor="TenLoTrinh" className="form-label">
+            Tên Lộ Trình
+          </label>
           <input
             type="text"
             id="TenLoTrinh"
@@ -185,18 +162,15 @@ function LoTrinhForm() {
           />
         </div>
 
-        {/* Xây dựng Lộ Trình */}
         <h4 className="mt-4">Các Trạm Dừng</h4>
         <div className="border p-3 rounded mb-3">
           <div className="input-group mb-3">
-            <select
-              className="form-select"
-              value={selectedKhoId}
-              onChange={(e) => setSelectedKhoId(e.target.value)}
-            >
+            <select className="form-select" value={selectedKhoId} onChange={(e) => setSelectedKhoId(e.target.value)}>
               <option value="">-- Chọn kho bãi để thêm --</option>
               {khoBaiList.map((kho) => (
-                <option key={kho.IdKhoBai} value={kho.IdKhoBai}>{kho.DiaChi} (ID: {kho.IdKhoBai})</option>
+                <option key={kho.IdKhoBai} value={kho.IdKhoBai}>
+                  {kho.DiaChi} (ID: {kho.IdKhoBai})
+                </option>
               ))}
             </select>
             <button type="button" className="btn btn-primary ms-2" onClick={handleThemTram}>
@@ -223,18 +197,41 @@ function LoTrinhForm() {
                   {index + 1}. {tram.TenKhoBai} ({tram.DiaChi})
                 </span>
                 <div>
-                  <button type="button" onClick={() => moveTramUp(index)} disabled={index === 0} style={{ marginRight: "5px", border: '1px solid #ccc' }} className="btn btn-sm">↑</button>
-                  <button type="button" onClick={() => moveTramDown(index)} disabled={index === dsTramDung.length - 1} style={{ marginRight: "5px", border: '1px solid #ccc' }} className="btn btn-sm">↓</button>
-                  <button type="button" onClick={() => handleXoaTram(tram.IdKhoBai)} className="btn btn-sm btn-outline-danger">Xóa</button>
+                  <button
+                    type="button"
+                    onClick={() => moveTramUp(index)}
+                    disabled={index === 0}
+                    style={{ marginRight: "5px", border: "1px solid #ccc" }}
+                    className="btn btn-sm"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveTramDown(index)}
+                    disabled={index === dsTramDung.length - 1}
+                    style={{ marginRight: "5px", border: "1px solid #ccc" }}
+                    className="btn btn-sm"
+                  >
+                    ↓
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleXoaTram(tram.IdKhoBai)}
+                    className="btn btn-sm btn-outline-danger"
+                  >
+                    Xóa
+                  </button>
                 </div>
               </li>
             ))}
           </ol>
         </div>
 
-        {/* Thông tin chi tiết */}
         <div className="mb-3">
-          <label htmlFor="TrangThai" className="form-label">Trạng thái</label>
+          <label htmlFor="TrangThai" className="form-label">
+            Trạng thái
+          </label>
           <select
             id="TrangThai"
             className="form-select"
@@ -249,7 +246,9 @@ function LoTrinhForm() {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="ETC" className="form-label">Thời gian dự kiến (giờ)</label>
+          <label htmlFor="ETC" className="form-label">
+            Thời gian dự kiến (giờ)
+          </label>
           <input
             type="number"
             id="ETC"
@@ -261,7 +260,9 @@ function LoTrinhForm() {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="khoangCach" className="form-label">Khoảng Cách (km)</label>
+          <label htmlFor="khoangCach" className="form-label">
+            Khoảng Cách (km)
+          </label>
           <input
             type="number"
             id="khoangCach"
@@ -272,27 +273,31 @@ function LoTrinhForm() {
           />
         </div>
 
-        <button type="submit" className="btn btn-success w-100">Lưu Lộ Trình</button>
+        <button type="submit" className="btn btn-success w-100">
+          Lưu Lộ Trình
+        </button>
         {error && <div className="text-danger mt-2">{error}</div>}
       </form>
 
-      {/* --- Sticky Panel bên phải (MỚI) --- */}
-      <div className="border rounded p-3 bg-white" style={{ width: "400px", height: "90vh", overflowY: "auto", position: "sticky", top: "10px" }}>
+      <div
+        className="border rounded p-3 bg-white"
+        style={{ width: "400px", height: "90vh", overflowY: "auto", position: "sticky", top: "10px" }}
+      >
         <h5>Danh sách lộ trình</h5>
-        {loadingLoTrinhList ? <p>Đang tải...</p> : (
+        {loadingLoTrinhList ? (
+          <p>Đang tải...</p>
+        ) : (
           <ul className="list-group">
-            {loTrinhList.map(lt => (
-              // Giả sử API trả về có IdLoTrinh
+            {loTrinhList.map((lt) => (
               <li key={lt.IdLoTrinh} className="list-group-item d-flex justify-content-between align-items-center">
                 <div>
                   <strong>{lt.TenLoTrinh}</strong>
-                  <br/>
-                  <small>Khoảng cách: {lt.khoangCach}km - Trạng thái: {lt.trangThai}</small>
+                  <br />
+                  <small>
+                    Khoảng cách: {lt.KhoangCach}km - Trạng thái: {lt.TrangThai}
+                  </small>
                 </div>
-                <button 
-                  className="btn btn-sm btn-danger" 
-                  onClick={() => handleDelete(lt.IdLoTrinh)} // Giả sử API xóa dùng IdLoTrinh
-                >
+                <button className="btn btn-sm btn-danger" onClick={() => handleDelete(lt.IdLoTrinh)}>
                   Xóa
                 </button>
               </li>

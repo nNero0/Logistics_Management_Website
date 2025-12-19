@@ -1,34 +1,49 @@
-// src/pages/DieuPhoiLayout.jsx
-import React from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import React, { useState } from "react";
+
+import GanDonPage from "./GanDonPage";
+import ChuyenDangChay from "./ChuyenDangChay";
+import InvoiceForm from "./InvoicePage";
 
 function DieuPhoiLayout() {
+  const [activeTab, setActiveTab] = useState("gandon");
+
   return (
     <div className="container mt-4">
-      <h2 className="mb-4">🚚 Quản Lý Điều Phối</h2>
+      <h2 className="mb-4"> Quản Lý Điều Phối</h2>
 
-      {/* Tabs Bootstrap */}
       <ul className="nav nav-tabs mb-3">
         <li className="nav-item">
-          <NavLink to="/dieuphoi" end className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
-            Gán Đơn (Matching)
-          </NavLink>
+          <button
+            className={`nav-link ${activeTab === "gandon" ? "active" : ""}`}
+            onClick={() => setActiveTab("gandon")}
+          >
+            Gán Đơn
+          </button>
         </li>
         <li className="nav-item">
-          <NavLink to="/dieuphoi/phancong" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
+          <button
+            className={`nav-link ${activeTab === "phancong" ? "active" : ""}`}
+            onClick={() => setActiveTab("phancong")}
+          >
             Chuyến Đang Chạy
-          </NavLink>
+          </button>
         </li>
         <li className="nav-item">
-          <NavLink to="/dieuphoi/invoice" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link ")}>
+          <button
+            className={`nav-link ${activeTab === "invoice" ? "active" : ""}`}
+            onClick={() => setActiveTab("invoice")}
+          >
             Thanh toán
-          </NavLink>
+          </button>
         </li>
       </ul>
 
-      {/* Tab content */}
       <div className="tab-content p-3 border rounded">
-        <Outlet />
+        {activeTab === "gandon" && <GanDonPage />}
+
+        {activeTab === "phancong" && <ChuyenDangChay />}
+
+        {activeTab === "invoice" && <InvoiceForm />}
       </div>
     </div>
   );

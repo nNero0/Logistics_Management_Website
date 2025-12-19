@@ -7,11 +7,10 @@ function KhachHangForm() {
   const [KhachHangList, setKhachHangList] = useState([]);
   const [loadingKH, setLoadingKH] = useState(true);
   const [error, setError] = useState(null);
-
+  const [searchTermKH, setSearchTermKH] = useState("");
   const apiURL = import.meta.env.VITE_APP_API;
   const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
 
-  // --- Load danh sách khách hàng ---
   const fetchKhachHang = async () => {
     setLoadingKH(true);
     try {
@@ -32,7 +31,6 @@ function KhachHangForm() {
     fetchKhachHang();
   }, []);
 
-  // --- Submit Form ---
   const HandleSubmit = async (event) => {
     event.preventDefault();
     setError(null);
@@ -53,12 +51,11 @@ function KhachHangForm() {
         const data = await res.json();
         throw new Error(data.message || "Tạo khách hàng thất bại");
       }
-
-      // reset form
+      fetchKhachHang();
       setHoten("");
       setSdt("");
       setEmail("");
-      fetchKhachHang(); // reload danh sách
+      fetchKhachHang();
     } catch (err) {
       setError(err.message);
     }
@@ -80,12 +77,13 @@ function KhachHangForm() {
 
   return (
     <div className="d-flex gap-4">
-      {/* --- Form bên trái --- */}
       <form onSubmit={HandleSubmit} className="p-4 border rounded bg-light flex-grow-1">
         <h3 className="mb-4">Thêm Khách Hàng Mới</h3>
 
         <div className="mb-3">
-          <label htmlFor="tenKhachHang" className="form-label">Tên Khách Hàng / Công Ty</label>
+          <label htmlFor="tenKhachHang" className="form-label">
+            Tên Khách Hàng / Công Ty
+          </label>
           <input
             id="tenKhachHang"
             type="text"
@@ -97,7 +95,9 @@ function KhachHangForm() {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="sdt" className="form-label">Số điện thoại</label>
+          <label htmlFor="sdt" className="form-label">
+            Số điện thoại
+          </label>
           <input
             id="sdt"
             type="text"
@@ -109,7 +109,9 @@ function KhachHangForm() {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="email" className="form-label">Email</label>
+          <label htmlFor="email" className="form-label">
+            Email
+          </label>
           <input
             id="email"
             type="email"
@@ -120,22 +122,49 @@ function KhachHangForm() {
           />
         </div>
 
-        <button type="submit" className="btn btn-primary">Lưu Khách Hàng</button>
+        <button type="submit" className="btn btn-primary">
+          Lưu Khách Hàng
+        </button>
         {error && <p className="text-danger mt-2">{error}</p>}
       </form>
 
-      {/* --- Sticky Panel bên phải --- */}
-      <div className="border rounded p-3 bg-white" style={{ width: "350px", height: "90vh", overflowY: "auto", position: "sticky", top: "10px" }}>
-        <h5>Danh sách khách hàng</h5>
-        {loadingKH ? <p>Đang tải...</p> : (
+      <div
+        className="border rounded p-3 bg-white"
+        style={{ width: "350px", height: "90vh", overflowY: "auto", position: "sticky", top: "10px" }}
+      >
+        <h5>Danh sách khách hàng ({KhachHangList.length})</h5>
+
+        <input
+          className="form-control mb-2"
+          placeholder="Tìm theo tên hoặc SĐT..."
+          value={searchTermKH}
+          onChange={(e) => setSearchTermKH(e.target.value)}
+        />
+
+        {loadingKH ? (
+          <p>Đang tải...</p>
+        ) : (
           <ul className="list-group">
-            {KhachHangList.map(kh => (
+            {KhachHangList.filter((kh) => {
+              const term = searchTermKH.toLowerCase();
+              const name = kh.Hoten ? kh.Hoten.toLowerCase() : "";
+              const phone = kh.Sdt ? kh.Sdt.toString() : "";
+
+              return name.includes(term) || phone.includes(term);
+            }).map((kh) => (
               <li key={kh.id} className="list-group-item d-flex justify-content-between align-items-center">
-                {kh.Hoten} ({kh.Sdt})
-                <button className="btn btn-sm btn-danger" onClick={() => handleDelete(kh.id)}>Xóa</button>
+                <div>
+                  <strong>{kh.Hoten}</strong>
+                  <br />
+                  <small className="text-muted">{kh.Sdt}</small>
+                </div>
+                <button className="btn btn-sm btn-danger" onClick={() => handleDelete(kh.id)}>
+                  Xóa
+                </button>
               </li>
             ))}
-            {KhachHangList.length === 0 && <li className="list-group-item">Không có khách hàng nào</li>}
+
+            {KhachHangList.length === 0 && <li className="list-group-item">Chưa có dữ liệu</li>}
           </ul>
         )}
       </div>

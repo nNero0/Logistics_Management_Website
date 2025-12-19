@@ -22,7 +22,6 @@ const authController = {
       console.log(error);
     }
   },
-  // to be
   async login(req, res) {
     console.log("Is the TaiKhoan model loaded?", TaiKhoan);
     try {
@@ -57,7 +56,6 @@ const authController = {
   },
   async verify(req, res) {
     try {
-      // User is already attached to req by the protect middleware
       res.status(200).json({
         id: req.user.IdTaiKhoan,
         Username: req.user.Username,

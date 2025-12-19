@@ -11,14 +11,16 @@ body, html, #root {
 
   text-align: center;
 }
-
-* {
+.my-leaflet-map-container img {
+    max-height: none;
+}
+html, body, #root {
   overflow: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
 
-*::-webkit-scrollbar {
+::-webkit-scrollbar {
   display: none;
 }
 
@@ -93,4 +95,10 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   
   /* Quan trọng: Cho phép bấm vào */
   cursor: pointer;
+}
+
+.leaflet-container {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 400px !important; /* Force a minimum height */
 }

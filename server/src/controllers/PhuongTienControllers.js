@@ -16,8 +16,8 @@
 //     PRIMARY KEY (IdPhuongTien),
 //     UNIQUE (BienSo)
 // );
+import { PhuongTien, KhoBai } from '../models/index.js';
 
-import { PhuongTien } from "../models/index.js";
 const PhuongTienControllers = {
   async CreatePhuongTien(req, res) {
     try {
@@ -63,14 +63,21 @@ const PhuongTienControllers = {
 
       const whereClause = {};
       if (trangThai) {
-        whereClause.TrangThai = trangThai; // Tên cột trong Model PhuongTien
+        whereClause.TrangThai = trangThai;
       }
       if (viTriId) {
-        whereClause.IdKhoBai = viTriId; // Tên cột trong Model PhuongTien
+        whereClause.IdKhoBai = viTriId; 
       }
 
       const phuongTienList = await PhuongTien.findAll({
         where: whereClause,
+        include: [
+          {
+            model: KhoBai,        
+            as: 'viTriHienTai',   
+            attributes: ['IdKhoBai', 'DiaChi'] 
+          }
+        ]
       });
 
       res.status(200).json(phuongTienList);

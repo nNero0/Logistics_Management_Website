@@ -58,7 +58,7 @@ function PhuongTienList() {
               <td>{PT.TaiTrong} kg</td>
               <td>{PT.TrongTai} kg</td>
               <td>
-                <button> Sửa</button> // LINK TO EDIT
+                <button> Sửa</button> 
                 <button onClick={() => handleDelete(PT.id)}> Xóa</button>
               </td>
             </tr>

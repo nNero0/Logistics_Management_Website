@@ -1,0 +1,136 @@
+SET FOREIGN_KEY_CHECKS = 0;
+
+CREATE SCHEMA IF NOT EXISTS `logistics` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE `finalschema`;
+
+CREATE TABLE IF NOT EXISTS `khobai` (
+  `IdKhoBai` INT NOT NULL AUTO_INCREMENT,
+  `DiaChi` VARCHAR(255) NOT NULL,
+  `SucChuaTong` DECIMAL(8,2) NOT NULL,
+  `TrangThai` VARCHAR(50) NOT NULL,
+  `LoaiKho` VARCHAR(50) NULL,
+  PRIMARY KEY (`IdKhoBai`),
+  UNIQUE INDEX `DiaChi_UNIQUE` (`DiaChi` ASC)
+) ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS `khachhang` (
+  `IdKhachHang` INT NOT NULL AUTO_INCREMENT,
+  `HoTen` VARCHAR(255) NOT NULL,
+  `Sdt` VARCHAR(15) NOT NULL,
+  `Email` VARCHAR(255) NOT NULL,
+  PRIMARY KEY (`IdKhachHang`),
+  UNIQUE INDEX `Sdt_UNIQUE` (`Sdt` ASC),
+  UNIQUE INDEX `Email_UNIQUE` (`Email` ASC)
+) ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS `lotrinh` (
+  `IdLoTrinh` INT NOT NULL AUTO_INCREMENT,
+  `TenLoTrinh` VARCHAR(255) NOT NULL,
+  `IdKhoBaiBatDau` INT NOT NULL,
+  `IdKhoBaiKetThuc` INT NOT NULL,
+  `TrangThai` VARCHAR(50) NOT NULL,
+  `ETC` DECIMAL(8,2) NOT NULL,
+  `KhoangCach` DECIMAL(8,2) NOT NULL,
+  PRIMARY KEY (`IdLoTrinh`),
+  FOREIGN KEY (`IdKhoBaiBatDau`) REFERENCES `khobai` (`IdKhoBai`) ON DELETE CASCADE,
+  FOREIGN KEY (`IdKhoBaiKetThuc`) REFERENCES `khobai` (`IdKhoBai`) ON DELETE CASCADE
+) ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS `chitietlotrinh` (
+  `IdChiTietLoTrinh` INT NOT NULL AUTO_INCREMENT,
+  `IdLoTrinh` INT NOT NULL,
+  `IdKhoBai` INT NOT NULL,
+  `ThuTu` INT NOT NULL,
+  PRIMARY KEY (`IdChiTietLoTrinh`),
+  UNIQUE INDEX `LoTrinh_ThuTu_UNIQUE` (`IdLoTrinh` ASC, `ThuTu` ASC),
+  FOREIGN KEY (`IdLoTrinh`) REFERENCES `lotrinh` (`IdLoTrinh`) ON DELETE CASCADE,
+  FOREIGN KEY (`IdKhoBai`) REFERENCES `khobai` (`IdKhoBai`) ON DELETE CASCADE
+) ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS `donvan` (
+  `IdDonVan` INT NOT NULL AUTO_INCREMENT,
+  `IdKhoBaiBatDau` INT NOT NULL,
+  `IdKhoBaiKetThuc` INT NOT NULL,
+  `IdKhachHang` INT NOT NULL,
+  `ETA` DATETIME NOT NULL,
+  `NgayLapDon` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `TrangThai` VARCHAR(50) NOT NULL DEFAULT 'Chờ điều phối',
+  `YeuCauContainer` TINYINT(1) DEFAULT 0,
+  PRIMARY KEY (`IdDonVan`),
+  FOREIGN KEY (`IdKhoBaiBatDau`) REFERENCES `khobai` (`IdKhoBai`),
+  FOREIGN KEY (`IdKhoBaiKetThuc`) REFERENCES `khobai` (`IdKhoBai`),
+  FOREIGN KEY (`IdKhachHang`) REFERENCES `khachhang` (`IdKhachHang`)
+) ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS `hanghoa` (
+  `IdHangHoa` INT NOT NULL AUTO_INCREMENT,
+  `IdDonVan` INT NOT NULL,
+  `NoiDung` VARCHAR(255) NOT NULL,
+  `CanNang` DECIMAL(8,2) NOT NULL,
+  `XuatXu` VARCHAR(50) NOT NULL,
+  `GhiChu` TEXT NULL,
+  `ChieuDai` DECIMAL(8,2) NOT NULL,
+  `ChieuRong` DECIMAL(8,2) NOT NULL,
+  `ChieuCao` DECIMAL(8,2) NOT NULL,
+  `NgayTao` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`IdHangHoa`),
+  FOREIGN KEY (`IdDonVan`) REFERENCES `donvan` (`IdDonVan`) ON DELETE CASCADE
+) ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS `phuongtien` (
+  `IdPhuongTien` INT NOT NULL AUTO_INCREMENT,
+  `BienSo` VARCHAR(20) NOT NULL,
+  `Loai` VARCHAR(50) NOT NULL,
+  `TaiTrong` DECIMAL(8,2) NOT NULL,
+  `TrangThai` VARCHAR(50) NOT NULL,
+  `GiayDangKyXeSo` VARCHAR(20) NOT NULL,
+  `CDaiThungChua` DECIMAL(8,2) NOT NULL,
+  `CRongThungChua` DECIMAL(8,2) NOT NULL,
+  `CCaoThungChua` DECIMAL(8,2) NOT NULL,
+  `IdKhoBai` INT NULL,
+  PRIMARY KEY (`IdPhuongTien`),
+  UNIQUE INDEX `BienSo_UNIQUE` (`BienSo` ASC),
+  FOREIGN KEY (`IdKhoBai`) REFERENCES `khobai` (`IdKhoBai`)
+) ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS `taixe` (
+  `IdTaiXe` INT NOT NULL AUTO_INCREMENT,
+  `Hoten` VARCHAR(255) NOT NULL,
+  `Sdt` VARCHAR(15) NOT NULL,
+  `Email` VARCHAR(255) NOT NULL,
+  `BangLai` VARCHAR(10) NOT NULL,
+  `TrangThaiNghiepVu` VARCHAR(50) NOT NULL,
+  `CCCD` VARCHAR(20) NOT NULL,
+  `NgayCapCCCD` DATE NOT NULL,
+  `NoiCapCCCD` VARCHAR(255) NOT NULL,
+  `IdKhoBai` INT NULL,
+  PRIMARY KEY (`IdTaiXe`),
+  UNIQUE INDEX `CCCD_UNIQUE` (`CCCD` ASC),
+  FOREIGN KEY (`IdKhoBai`) REFERENCES `khobai` (`IdKhoBai`)
+) ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS `phancongdonvan` (
+  `IdPhanCong` INT NOT NULL AUTO_INCREMENT,
+  `IdTaiXe` INT NOT NULL,
+  `IdPhuongTien` INT NOT NULL,
+  `IdDonVan` INT NOT NULL,
+  `NgayBatDau` DATETIME NOT NULL,
+  `NgayKetThuc` DATETIME NULL,
+  `TrangThai` VARCHAR(50) NULL,
+  PRIMARY KEY (`IdPhanCong`),
+  FOREIGN KEY (`IdTaiXe`) REFERENCES `taixe` (`IdTaiXe`),
+  FOREIGN KEY (`IdPhuongTien`) REFERENCES `phuongtien` (`IdPhuongTien`),
+  FOREIGN KEY (`IdDonVan`) REFERENCES `donvan` (`IdDonVan`) ON DELETE CASCADE
+) ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS `taikhoan` (
+  `IdTaiKhoan` INT NOT NULL AUTO_INCREMENT,
+  `Username` VARCHAR(50) NOT NULL,
+  `PasswordHash` VARCHAR(255) NOT NULL,
+  `Email` VARCHAR(255) NOT NULL,
+  `Sdt` VARCHAR(15) NULL,
+  PRIMARY KEY (`IdTaiKhoan`),
+  UNIQUE INDEX `Username_UNIQUE` (`Username` ASC)
+) ENGINE = InnoDB;
+
+SET FOREIGN_KEY_CHECKS = 1;
